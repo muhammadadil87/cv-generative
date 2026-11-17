@@ -21,10 +21,9 @@ async function getCloudUserStore() {
 async function saveCloudUserStore(store) {
     try {
         await fetch(`https://api.restful-api.dev/objects/${USER_STORE_ID}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                name: 'cv_portal_user_states',
                 data: store
             })
         });
