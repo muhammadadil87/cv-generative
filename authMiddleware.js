@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+const bcrypt = require('bcryptjs');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-antigravity-2026';
 
@@ -18,7 +19,39 @@ function authenticate(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        const user = db.prepare('SELECT id, name, email, student_id, role, status FROM users WHERE id = ?').get(decoded.id);
+        let user = db.prepare('SELECT id, name, email, student_id, role, status FROM users WHERE id = ?').get(decoded.id);
+
+        // If not found by ID, try finding by email
+        if (!user && decoded.email) {
+            user = db.prepare('SELECT id, name, email, student_id, role, status FROM users WHERE LOWER(email) = ?').get(decoded.email.toLowerCase());
+        }
+
+        // Auto-recovery for Vercel ephemeral serverless environment
+        if (!user && decoded.email) {
+            try {
+                const defaultPassHash = bcrypt.hashSync('Student@123', 10);
+                const userName = decoded.name || 'Muhammad Umar';
+                const userRole = decoded.role || 'student';
+                const userStudentId = decoded.student_id || null;
+
+                // Re-create user with their exact decoded ID so foreign keys match
+                db.prepare(`
+                    INSERT OR REPLACE INTO users (id, name, email, student_id, password_hash, role, status)
+                    VALUES (?, ?, ?, ?, ?, ?, 'active')
+                `).run(decoded.id, userName, decoded.email.toLowerCase(), userStudentId, defaultPassHash, userRole);
+
+                // Ensure cv_profiles record exists
+                db.prepare(`
+                    INSERT OR IGNORE INTO cv_profiles (user_id, status)
+                    VALUES (?, 'Draft')
+                `).run(decoded.id);
+
+                user = db.prepare('SELECT id, name, email, student_id, role, status FROM users WHERE id = ?').get(decoded.id);
+                console.log(`[Auto-Recovery] Successfully restored verified user: ${decoded.email} (ID: ${decoded.id})`);
+            } catch (recoveryErr) {
+                console.error('[Auto-Recovery Error]:', recoveryErr);
+            }
+        }
 
         if (!user) {
             return res.status(401).json({ error: 'User account not found.' });

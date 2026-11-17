@@ -65,7 +65,7 @@ router.post('/register', (req, res) => {
 
         // Generate JWT
         const token = jwt.sign(
-            { id: newUserId, email: normalizedEmail, role: 'student' },
+            { id: newUserId, name: trimmedName, email: normalizedEmail, student_id: trimmedStudentId, role: 'student' },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -121,7 +121,7 @@ router.post('/login', (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
+            { id: user.id, name: user.name, email: user.email, student_id: user.student_id, role: user.role },
             JWT_SECRET,
             { expiresIn: '7d' }
         );

@@ -205,6 +205,7 @@ function initDatabase() {
 
     // Ensure Initial Admin Account exists
     seedAdmin();
+    seedInitialStudents();
 }
 
 function seedAdmin() {
@@ -235,6 +236,32 @@ function seedAdmin() {
         `);
         insertStmt.run(adminName, adminEmail, adminUsername, hash);
         console.log(`[Database] Sole Admin account created for: ${adminUsername} / ${adminEmail}`);
+    }
+}
+
+function seedInitialStudents() {
+    // 1. Ensure Muhammad Adil (Student Account) exists
+    const adilStudent = db.prepare("SELECT id FROM users WHERE email = 'adil@gmail.com'").get();
+    if (!adilStudent) {
+        const hash = bcrypt.hashSync('Adil@123', 10);
+        db.prepare(`
+            INSERT INTO users (id, name, email, student_id, password_hash, role, status)
+            VALUES (3, 'Muhammad Adil', 'adil@gmail.com', 'MBF24004331', ?, 'student', 'active')
+        `).run(hash);
+        db.prepare("INSERT OR IGNORE INTO cv_profiles (user_id, status) VALUES (3, 'Completed')").run();
+    }
+
+    // 2. Ensure Muhammad Umar (Student Account) exists and is protected
+    const umarStudent = db.prepare("SELECT id FROM users WHERE email LIKE '%umar%' OR name LIKE '%Umar%'").get();
+    if (!umarStudent) {
+        const hash = bcrypt.hashSync('123456', 10);
+        const res = db.prepare(`
+            INSERT INTO users (name, email, student_id, password_hash, role, status)
+            VALUES ('Muhammad Umar', 'umar@university.edu', 'STU2026Umar', ?, 'student', 'active')
+        `).run(hash);
+        const umarId = res.lastInsertRowid;
+        db.prepare("INSERT OR IGNORE INTO cv_profiles (user_id, status) VALUES (?, 'Draft')").run(umarId);
+        console.log(`[Database] Seeded student Muhammad Umar (ID: ${umarId})`);
     }
 }
 
