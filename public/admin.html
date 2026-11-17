@@ -1236,7 +1236,7 @@
 
             listContainer.innerHTML = threads.map(t => {
                 const isSelected = (selectedThreadId === t.id);
-                const timeStr = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const timeStr = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '';
                 const unread = t.unread_admin_count || 0;
                 const initials = (t.visitor_name || 'ST').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
 
@@ -1313,7 +1313,7 @@
                 const stage = document.getElementById('active-chat-messages');
                 stage.innerHTML = messages.map(m => {
                     const isAdmin = (m.sender_type === 'admin');
-                    const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '';
 
                     if (isAdmin) {
                         return `

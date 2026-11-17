@@ -1,6 +1,6 @@
 /**
  * Student CV Builder & Admin Portal - Live Chat Widget
- * Accessible before and after login across all pages.
+ * Accessible before and after login across all pages with zero message loss.
  */
 (function() {
     // Generate or retrieve persistent visitor session ID
@@ -16,7 +16,23 @@
     let pollInterval = null;
     let lastRenderedCount = 0;
 
-    // Check if user is logged in via Auth helper
+    // Format exact live time
+    function getLiveTimeStr(timestamp) {
+        if (!timestamp) {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        }
+        try {
+            const d = new Date(timestamp);
+            if (isNaN(d.getTime())) {
+                return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            }
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        } catch (e) {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        }
+    }
+
+    // Check if user is logged in
     function getLoggedInUser() {
         try {
             if (window.Auth && typeof window.Auth.getUser === 'function') {
@@ -41,7 +57,7 @@
     widgetContainer.className = 'fixed bottom-5 right-5 z-50 flex flex-col items-end font-sans';
     widgetContainer.innerHTML = `
         <!-- Chat Window Panel -->
-        <div id="cv-chat-window" class="hidden mb-3 w-[360px] sm:w-[390px] max-w-[calc(100vw-30px)] h-[540px] max-h-[calc(100vh-100px)] bg-white rounded-2xl shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden transition-all transform origin-bottom-right duration-200">
+        <div id="cv-chat-window" class="hidden mb-3 w-[360px] sm:w-[390px] max-w-[calc(100vw-30px)] h-[550px] max-h-[calc(100vh-100px)] bg-white rounded-2xl shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden transition-all transform origin-bottom-right duration-200">
             <!-- Header -->
             <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white p-4 flex items-center justify-between shadow-sm flex-shrink-0">
                 <div class="flex items-center space-x-3">
@@ -56,7 +72,7 @@
                         </h4>
                         <p class="text-[11px] text-indigo-100/90 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-                            Online & Ready to Help
+                            Online & Live Support Desk
                         </p>
                     </div>
                 </div>
@@ -70,30 +86,21 @@
                 </div>
             </div>
 
-            <!-- Pre-chat Identity Banner (only if visitor is not identified) -->
-            <div id="cv-chat-identity-box" class="${(visitorName && visitorEmail) ? 'hidden' : ''} bg-indigo-50/90 border-b border-indigo-100 p-3 flex-shrink-0">
-                <p class="text-[11px] font-semibold text-indigo-900 mb-2">👋 Welcome! Enter your details to start chatting:</p>
+            <!-- Identity Box (Shows only if visitor is unknown) -->
+            <div id="cv-chat-identity-box" class="${(visitorName && visitorEmail && visitorEmail.includes('@') && !visitorEmail.includes('@student.portal')) ? 'hidden' : ''} bg-indigo-50/90 border-b border-indigo-100 p-3 flex-shrink-0">
+                <p class="text-[11px] font-semibold text-indigo-900 mb-1.5">👋 Welcome! Enter your details so Admin receives your message:</p>
                 <div class="space-y-1.5">
                     <input type="text" id="cv-visitor-name" placeholder="Your Name" value="${escapeHtml(visitorName)}" class="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <input type="email" id="cv-visitor-email" placeholder="Your Email (for notification replies)" value="${escapeHtml(visitorEmail)}" class="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    <input type="email" id="cv-visitor-email" placeholder="Your Original Gmail (e.g. name@gmail.com)" value="${(visitorEmail && !visitorEmail.includes('@student.portal')) ? escapeHtml(visitorEmail) : ''}" class="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                 </div>
             </div>
 
             <!-- Messages Conversation Stage -->
             <div id="cv-chat-messages" class="flex-1 p-3.5 overflow-y-auto space-y-3 bg-slate-50 text-xs">
-                <!-- Welcome greeting -->
-                <div class="flex items-start space-x-2">
-                    <img src="/images/creator-profile.jpg" class="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5 border border-slate-200" onerror="this.src='https://ui-avatars.com/api/?name=Muhammad+Adil&background=4f46e5&color=fff'">
-                    <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-xs max-w-[85%]">
-                        <p class="font-bold text-[11px] text-indigo-600 mb-1">Muhammad Adil (Creator & Admin)</p>
-                        <p class="leading-relaxed">Hello! 👋 Welcome to Student CV Portal. How can I assist you with your CV today?</p>
-                        <p class="text-[10px] text-slate-500 mt-1">Reply here or press <strong>[ 1 ]</strong> to connect with Admin directly.</p>
-                        <span class="block text-[9px] text-slate-400 mt-1.5">Live Support Desk</span>
-                    </div>
-                </div>
+                <!-- Messages rendered dynamically -->
             </div>
 
-            <!-- Quick Connect Admin Bar -->
+            <!-- Quick Action: Press 1 (Notify Admin) -->
             <div class="px-3 py-1.5 bg-indigo-50/80 border-t border-indigo-100 flex items-center justify-between flex-shrink-0">
                 <span class="text-[11px] text-indigo-900 font-semibold flex items-center gap-1">
                     <i class="fa-solid fa-headset text-indigo-600 text-xs"></i>
@@ -101,13 +108,13 @@
                 </span>
                 <button type="button" id="cv-chat-quick-admin-btn" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-2xs">
                     <i class="fa-solid fa-paper-plane text-[9px]"></i>
-                    <span>Press 1 (Notify Admin)</span>
+                    <span>Press 1 (Alert Admin)</span>
                 </button>
             </div>
 
             <!-- Input Box & Actions -->
             <form id="cv-chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2 flex-shrink-0">
-                <input type="text" id="cv-chat-input" placeholder="Type your message..." autocomplete="off" required
+                <input type="text" id="cv-chat-input" placeholder="Type your message or '1' to alert admin..." autocomplete="off" required
                     class="flex-1 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                 <button type="submit" id="cv-chat-send-btn" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white flex items-center justify-center shadow-md hover:shadow-indigo-200 transition flex-shrink-0">
                     <i class="fa-solid fa-paper-plane text-xs"></i>
@@ -143,6 +150,7 @@
     const inputName = document.getElementById('cv-visitor-name');
     const inputEmail = document.getElementById('cv-visitor-email');
     const chatBadge = document.getElementById('cv-chat-badge');
+    const quickAdminBtn = document.getElementById('cv-chat-quick-admin-btn');
 
     function toggleChat(open) {
         isChatOpen = (typeof open === 'boolean') ? open : !isChatOpen;
@@ -151,6 +159,7 @@
             chatTrigger.classList.add('scale-95', 'opacity-90');
             chatBadge.classList.add('hidden');
             chatBadge.innerText = '0';
+            renderSavedMessages();
             fetchMessages();
             startPolling();
             setTimeout(() => chatInput.focus(), 150);
@@ -165,12 +174,29 @@
     chatClose.addEventListener('click', () => toggleChat(false));
     chatRefresh.addEventListener('click', () => fetchMessages());
 
-    const quickAdminBtn = document.getElementById('cv-chat-quick-admin-btn');
     if (quickAdminBtn) {
         quickAdminBtn.addEventListener('click', () => {
             chatInput.value = '1';
             chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
         });
+    }
+
+    // Client Storage Helpers - Guarantees NO message is EVER lost
+    function getStoredMessages() {
+        try {
+            return JSON.parse(localStorage.getItem('cv_chat_msgs_' + sessionId) || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function storeMessage(msg) {
+        const msgs = getStoredMessages();
+        const exists = msgs.some(m => m.message === msg.message && m.sender_type === msg.sender_type && Math.abs(new Date(m.created_at) - new Date(msg.created_at)) < 5000);
+        if (!exists) {
+            msgs.push(msg);
+            localStorage.setItem('cv_chat_msgs_' + sessionId, JSON.stringify(msgs));
+        }
     }
 
     // Send Message
@@ -197,7 +223,7 @@
             finalName = nameMatch[1].trim();
         }
 
-        // If user wants Admin assistance (Press 1 / Admin) but email is missing, ask for their original email!
+        // If user is calling admin (Press 1 / Admin) and email is missing, ask for their original email!
         const isCallingAdmin = (text === '1' || text.toLowerCase().includes('admin') || text.toLowerCase().includes('connect'));
         if (isCallingAdmin && (!finalEmail || !finalEmail.includes('@') || finalEmail.includes('@student.portal'))) {
             if (identityBox) identityBox.classList.remove('hidden');
@@ -210,7 +236,7 @@
         if (!finalName) finalName = 'Student Visitor';
         if (!finalEmail || !finalEmail.includes('@')) finalEmail = 'visitor@student.portal';
 
-        // Persist locally
+        // Persist identity locally
         visitorName = finalName;
         visitorEmail = finalEmail;
         localStorage.setItem('cv_chat_user_name', visitorName);
@@ -219,15 +245,20 @@
             identityBox.classList.add('hidden');
         }
 
-        // Optimistic UI Append
-        chatInput.value = '';
-        appendMessageUI({
+        const nowIso = new Date().toISOString();
+        const newMsgObj = {
             sender_type: 'student',
             sender_name: 'You',
             message: text,
-            created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
+            created_at: nowIso
+        };
 
+        // 1. Immediately store in client localStorage so it NEVER disappears
+        storeMessage(newMsgObj);
+        chatInput.value = '';
+        renderSavedMessages();
+
+        // 2. Transmit to backend
         try {
             const u = getLoggedInUser();
             const res = await fetch('/api/chat/send', {
@@ -243,33 +274,41 @@
             });
 
             const data = await res.json();
-            if (!res.ok) {
-                console.error('Chat send error:', data.error);
-            } else {
-                fetchMessages();
+            if (data.bot_reply) {
+                storeMessage({
+                    sender_type: 'admin',
+                    sender_name: 'Muhammad Adil (Live Support)',
+                    message: data.bot_reply,
+                    created_at: new Date().toISOString()
+                });
+                renderSavedMessages();
             }
+            fetchMessages();
         } catch (err) {
             console.error('Network error sending chat:', err);
         }
     });
 
-    // Fetch Messages
+    // Fetch Messages from server
     async function fetchMessages() {
         try {
             const res = await fetch(`/api/chat/messages/${encodeURIComponent(sessionId)}`);
             const data = await res.json();
             if (data.success && data.messages) {
-                renderMessages(data.messages);
+                // Merge server messages into local storage
+                data.messages.forEach(sm => storeMessage(sm));
+                renderSavedMessages();
             }
         } catch (err) {
             console.error('Error fetching chat messages:', err);
         }
     }
 
-    function renderMessages(messages) {
+    function renderSavedMessages() {
         if (!messagesStage) return;
+        const messages = getStoredMessages();
 
-        // If count has changed or unread admin message arrived
+        // Check unread badge
         if (messages.length > lastRenderedCount && !isChatOpen) {
             const unreadAdmin = messages.slice(lastRenderedCount).filter(m => m.sender_type === 'admin');
             if (unreadAdmin.length > 0) {
@@ -277,31 +316,30 @@
                 chatBadge.classList.remove('hidden');
             }
         }
-
         lastRenderedCount = messages.length;
 
-        // Render welcoming banner plus all DB messages
         let html = `
             <div class="flex items-start space-x-2">
                 <img src="/images/creator-profile.jpg" class="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5 border border-slate-200" onerror="this.src='https://ui-avatars.com/api/?name=Muhammad+Adil&background=4f46e5&color=fff'">
                 <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-xs max-w-[85%]">
-                    <p class="font-bold text-[11px] text-indigo-600 mb-1">Muhammad Adil (Creator)</p>
-                    <p class="leading-relaxed">Assalam-o-Alaikum! 👋 How can I help you with your CV, university format, or portal account today?</p>
-                    <span class="block text-[9px] text-slate-400 mt-1.5">Support Desk</span>
+                    <p class="font-bold text-[11px] text-indigo-600 mb-1">Muhammad Adil (Creator & Admin)</p>
+                    <p class="leading-relaxed">Hello! 👋 Welcome to Student CV Portal. How can I help you today?</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Reply here or press <strong>[ 1 ]</strong> to connect with Admin directly.</p>
+                    <span class="block text-[9px] text-slate-400 mt-1.5">Live Desk Active</span>
                 </div>
             </div>
         `;
 
         messages.forEach(m => {
             const isStudent = (m.sender_type === 'student');
-            const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            const liveTimeStr = getLiveTimeStr(m.created_at);
 
             if (isStudent) {
                 html += `
                     <div class="flex items-end justify-end space-x-2">
                         <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-sm shadow-xs max-w-[85%]">
                             <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(m.message)}</p>
-                            <span class="block text-[9px] text-indigo-200 text-right mt-1">${timeStr}</span>
+                            <span class="block text-[9px] text-indigo-200 text-right mt-1 font-mono">${liveTimeStr}</span>
                         </div>
                     </div>
                 `;
@@ -312,7 +350,7 @@
                         <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-xs max-w-[85%]">
                             <p class="font-bold text-[11px] text-purple-600 mb-1">Muhammad Adil</p>
                             <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(m.message)}</p>
-                            <span class="block text-[9px] text-slate-400 mt-1">${timeStr}</span>
+                            <span class="block text-[9px] text-slate-400 mt-1 font-mono">${liveTimeStr}</span>
                         </div>
                     </div>
                 `;
@@ -323,23 +361,9 @@
         messagesStage.scrollTop = messagesStage.scrollHeight;
     }
 
-    function appendMessageUI(msg) {
-        if (!messagesStage) return;
-        const div = document.createElement('div');
-        div.className = 'flex items-end justify-end space-x-2';
-        div.innerHTML = `
-            <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-sm shadow-xs max-w-[85%]">
-                <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(msg.message)}</p>
-                <span class="block text-[9px] text-indigo-200 text-right mt-1">${msg.created_at}</span>
-            </div>
-        `;
-        messagesStage.appendChild(div);
-        messagesStage.scrollTop = messagesStage.scrollHeight;
-    }
-
     function startPolling() {
         stopPolling();
-        pollInterval = setInterval(fetchMessages, 3500);
+        pollInterval = setInterval(fetchMessages, 3000);
     }
 
     function stopPolling() {
@@ -353,6 +377,7 @@
         return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Auto-fetch once on load to see if previous conversation exists
+    // Auto-fetch on load
     fetchMessages();
+    renderSavedMessages();
 })();

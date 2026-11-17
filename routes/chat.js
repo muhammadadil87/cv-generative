@@ -5,8 +5,38 @@ const { authenticate, requireRole } = require('../authMiddleware');
 const nodemailer = require('nodemailer');
 
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'muhammadadil5387@gmail.com';
+const CLOUD_STORE_ID = 'ff808181a09d98f701a1e9343be074fd';
 
-// Configure nodemailer transporter if SMTP configured
+// Cloud Store Helper for seamless cross-serverless persistence
+async function getCloudStore() {
+    try {
+        const res = await fetch(`https://api.restful-api.dev/objects/${CLOUD_STORE_ID}`);
+        if (res.ok) {
+            const data = await res.json();
+            return data.data || { threads: {}, messages: {} };
+        }
+    } catch (e) {
+        console.warn('[CloudStore] Read warning:', e.message);
+    }
+    return { threads: {}, messages: {} };
+}
+
+async function updateCloudStore(store) {
+    try {
+        await fetch(`https://api.restful-api.dev/objects/${CLOUD_STORE_ID}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: 'cv_portal_chat_store',
+                data: store
+            })
+        });
+    } catch (e) {
+        console.warn('[CloudStore] Write warning:', e.message);
+    }
+}
+
+// Nodemailer transporter if SMTP configured
 let transporter = null;
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
@@ -24,12 +54,14 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     }
 }
 
-// Guaranteed Multi-Channel Admin Notification
+// Multi-Channel Instant Admin Notification
 async function sendAdminNotification(studentName, studentEmail, messageText, sessionId) {
+    const liveTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
     console.log(`\n======================================================`);
     console.log(`🔔 [LIVE CHAT NOTIFICATION] Priority message from student!`);
     console.log(`👤 Student: ${studentName} (${studentEmail})`);
     console.log(`💬 Message: "${messageText}"`);
+    console.log(`⏰ Time: ${liveTime}`);
     console.log(`📧 Target Admin Email: ${ADMIN_EMAIL}`);
     console.log(`🔗 Admin Live Console: https://cvgenerative.vercel.app/admin.html`);
     console.log(`======================================================\n`);
@@ -46,11 +78,12 @@ async function sendAdminNotification(studentName, studentEmail, messageText, ses
                 'Referer': 'https://cvgenerative.vercel.app/'
             },
             body: JSON.stringify({
-                _subject: `🚨 [Live Chat Alert] ${studentName} (${studentEmail}) wants to talk with Admin Muhammad Adil!`,
+                _subject: `🚨 [Live Chat Alert] ${studentName} wants to talk with Admin Muhammad Adil!`,
                 'Student Name': studentName,
                 'Original Email': studentEmail,
                 _replyto: studentEmail,
-                'Latest Message': messageText,
+                'Message / Request': messageText,
+                'Exact Time': liveTime,
                 'Session ID': sessionId,
                 'Action Required': 'Please log in to Admin Portal to reply: https://cvgenerative.vercel.app/admin.html'
             })
@@ -68,24 +101,7 @@ async function sendAdminNotification(studentName, studentEmail, messageText, ses
                 from: `"Student CV Portal" <${process.env.SMTP_USER}>`,
                 to: ADMIN_EMAIL,
                 subject: `🔔 [Live Chat Alert] ${studentName} requested Admin assistance`,
-                text: `New live chat message on Student CV Builder Portal!\n\nFrom: ${studentName} (${studentEmail})\nMessage: ${messageText}\n\nLog in to Admin Console: https://cvgenerative.vercel.app/admin.html`,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                        <h2 style="color: #4f46e5; margin-top: 0;">💬 Live Chat Request from ${escapeHtml(studentName)}</h2>
-                        <p style="font-size: 14px; color: #334155;">A visitor on your CV portal has asked to speak with Admin:</p>
-                        <div style="background-color: #f8fafc; padding: 14px; border-radius: 8px; margin: 15px 0;">
-                            <p style="margin: 0 0 6px 0;"><strong>Name:</strong> ${escapeHtml(studentName)}</p>
-                            <p style="margin: 0 0 6px 0;"><strong>Email:</strong> ${escapeHtml(studentEmail)}</p>
-                            <p style="margin: 0 0 6px 0;"><strong>Message:</strong></p>
-                            <blockquote style="margin: 0; padding-left: 10px; border-left: 3px solid #6366f1; color: #1e293b;">
-                                ${escapeHtml(messageText)}
-                            </blockquote>
-                        </div>
-                        <a href="https://cvgenerative.vercel.app/admin.html" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">
-                            Open Admin Live Desk & Reply
-                        </a>
-                    </div>
-                `
+                text: `New live chat message on Student CV Builder Portal!\n\nFrom: ${studentName} (${studentEmail})\nMessage: ${messageText}\nTime: ${liveTime}\n\nLog in to Admin Console: https://cvgenerative.vercel.app/admin.html`
             });
             console.log('[Chat Alert] Nodemailer SMTP delivered successfully.');
         } catch (smtpErr) {
@@ -99,7 +115,7 @@ function escapeHtml(text) {
 }
 
 // 1. PUBLIC: Send a message from visitor/student (Works BEFORE and AFTER login)
-router.post('/send', (req, res) => {
+router.post('/send', async (req, res) => {
     try {
         const { session_id, name, email, message, user_id } = req.body;
 
@@ -112,12 +128,12 @@ router.post('/send', (req, res) => {
 
         const cleanSessionId = session_id.trim();
         const cleanMsg = message.trim();
+        const liveIsoTime = new Date().toISOString();
 
-        // Check if thread exists for this exact session
+        // 1. Check or create SQLite thread
         let thread = db.prepare('SELECT id, visitor_name, visitor_email FROM chat_threads WHERE session_id = ?').get(cleanSessionId);
 
         if (!thread) {
-            // Count total threads so unauthenticated visitors become Visitor #1, Visitor #2, etc.
             const countRow = db.prepare('SELECT COUNT(*) as count FROM chat_threads').get();
             const visitorNum = (countRow ? countRow.count : 0) + 1;
 
@@ -126,12 +142,11 @@ router.post('/send', (req, res) => {
 
             const info = db.prepare(`
                 INSERT INTO chat_threads (session_id, user_id, visitor_name, visitor_email, last_message, last_message_at, unread_admin_count)
-                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
-            `).run(cleanSessionId, user_id || null, finalName, finalEmail, cleanMsg);
+                VALUES (?, ?, ?, ?, ?, ?, 1)
+            `).run(cleanSessionId, user_id || null, finalName, finalEmail, cleanMsg, liveIsoTime);
 
             thread = { id: info.lastInsertRowid, visitor_name: finalName, visitor_email: finalEmail };
         } else {
-            // Check if visitor is updating their name or if text contains their name/email
             let updatedName = thread.visitor_name;
             let updatedEmail = thread.visitor_email;
 
@@ -142,36 +157,23 @@ router.post('/send', (req, res) => {
                 updatedEmail = email.trim();
             }
 
-            // Simple auto-name extractor if visitor says "my name is Ali" or "I am Umar"
-            const nameMatch = cleanMsg.match(/(?:my name is|i am|this is|call me)\s+([a-zA-Z\s]{2,25})/i);
-            if (nameMatch && nameMatch[1] && updatedName.startsWith('Visitor #')) {
-                updatedName = nameMatch[1].trim();
-            }
-
-            // Simple auto-email extractor
-            const emailMatch = cleanMsg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-            if (emailMatch && emailMatch[1]) {
-                updatedEmail = emailMatch[1].trim();
-            }
-
             db.prepare(`
                 UPDATE chat_threads 
-                SET visitor_name = ?, visitor_email = ?, last_message = ?, last_message_at = CURRENT_TIMESTAMP, unread_admin_count = unread_admin_count + 1
+                SET visitor_name = ?, visitor_email = ?, last_message = ?, last_message_at = ?, unread_admin_count = unread_admin_count + 1
                 WHERE id = ?
-            `).run(updatedName, updatedEmail, cleanMsg, thread.id);
+            `).run(updatedName, updatedEmail, cleanMsg, liveIsoTime, thread.id);
 
             thread.visitor_name = updatedName;
             thread.visitor_email = updatedEmail;
         }
 
-        // Insert Student Message into persistent conversation
+        // Insert Student Message into SQLite
         const msgInfo = db.prepare(`
             INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
-            VALUES (?, 'student', ?, ?, CURRENT_TIMESTAMP)
-        `).run(thread.id, thread.visitor_name, cleanMsg);
+            VALUES (?, 'student', ?, ?, ?)
+        `).run(thread.id, thread.visitor_name, cleanMsg, liveIsoTime);
 
-        // Check if student wants to speak with Admin:
-        // Triggered by typing "1", "admin", "talk", "connect", or "help"
+        // Check if student wants to speak with Admin (Press 1 / Admin)
         const isRequestingAdmin = cleanMsg === '1' || 
                                   cleanMsg.toLowerCase().includes('admin') || 
                                   cleanMsg.toLowerCase().includes('connect') ||
@@ -181,37 +183,63 @@ router.post('/send', (req, res) => {
         if (isRequestingAdmin) {
             botReply = `Connecting you with Admin (Muhammad Adil)... 🚀\n\nAn instant priority notification has been sent to Muhammad Adil's email (${ADMIN_EMAIL})! Please stay on this screen, he will join and reply to you directly in this chat shortly.`;
 
-            // Insert automated bot reply into persistent conversation
             db.prepare(`
                 INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
-                VALUES (?, 'admin', 'Muhammad Adil (Live Support)', ?, CURRENT_TIMESTAMP)
-            `).run(thread.id, botReply);
+                VALUES (?, 'admin', 'Muhammad Adil (Live Support)', ?, ?)
+            `).run(thread.id, botReply, new Date().toISOString());
 
-            // Update thread last message
             db.prepare(`
                 UPDATE chat_threads 
-                SET last_message = ?, last_message_at = CURRENT_TIMESTAMP
+                SET last_message = ?, last_message_at = ?
                 WHERE id = ?
-            `).run(botReply, thread.id);
+            `).run(botReply, new Date().toISOString(), thread.id);
 
-            // Immediate email notification to Muhammad Adil
             sendAdminNotification(thread.visitor_name, thread.visitor_email, cleanMsg, cleanSessionId).catch(() => {});
         } else {
-            // First time student sends a message:
-            // Check how many messages exist in this thread
-            const totalMsgs = db.prepare('SELECT COUNT(*) as count FROM chat_messages WHERE thread_id = ?').get(thread.id).count;
-            if (totalMsgs <= 2) {
-                botReply = `Thank you for your message! 😊\n\nIf you would like to speak directly with Admin Muhammad Adil, simply reply with:\n👉 Press [ 1 ] or type 'Admin' to notify Muhammad Adil right now!`;
-
-                db.prepare(`
-                    INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
-                    VALUES (?, 'admin', 'Muhammad Adil (Live Support)', ?, CURRENT_TIMESTAMP)
-                `).run(thread.id, botReply);
-            }
-
-            // Also dispatch notification to email
             sendAdminNotification(thread.visitor_name, thread.visitor_email, cleanMsg, cleanSessionId).catch(() => {});
         }
+
+        // Async Cloud Sync so message NEVER disappears across any serverless container
+        (async () => {
+            try {
+                const store = await getCloudStore();
+                if (!store.threads) store.threads = {};
+                if (!store.messages) store.messages = {};
+
+                store.threads[cleanSessionId] = {
+                    id: thread.id,
+                    session_id: cleanSessionId,
+                    visitor_name: thread.visitor_name,
+                    visitor_email: thread.visitor_email,
+                    last_message: botReply || cleanMsg,
+                    last_message_at: liveIsoTime,
+                    unread_admin_count: 1
+                };
+
+                if (!store.messages[cleanSessionId]) store.messages[cleanSessionId] = [];
+                store.messages[cleanSessionId].push({
+                    id: msgInfo.lastInsertRowid,
+                    sender_type: 'student',
+                    sender_name: thread.visitor_name,
+                    message: cleanMsg,
+                    created_at: liveIsoTime
+                });
+
+                if (botReply) {
+                    store.messages[cleanSessionId].push({
+                        id: Date.now(),
+                        sender_type: 'admin',
+                        sender_name: 'Muhammad Adil (Live Support)',
+                        message: botReply,
+                        created_at: new Date().toISOString()
+                    });
+                }
+
+                await updateCloudStore(store);
+            } catch (syncErr) {
+                console.warn('[Cloud Sync Error]:', syncErr.message);
+            }
+        })();
 
         return res.status(201).json({
             success: true,
@@ -219,6 +247,7 @@ router.post('/send', (req, res) => {
             message_id: msgInfo.lastInsertRowid,
             thread_id: thread.id,
             visitor_name: thread.visitor_name,
+            created_at: liveIsoTime,
             bot_reply: botReply
         });
     } catch (err) {
@@ -228,28 +257,37 @@ router.post('/send', (req, res) => {
 });
 
 // 2. PUBLIC: Get conversation message history for a visitor session
-router.get('/messages/:sessionId', (req, res) => {
+router.get('/messages/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
         if (!sessionId) {
             return res.status(400).json({ error: 'Session ID required.' });
         }
 
-        const thread = db.prepare('SELECT id, visitor_name, visitor_email, status FROM chat_threads WHERE session_id = ?').get(sessionId);
+        // Try SQLite first
+        let thread = db.prepare('SELECT id, visitor_name, visitor_email, status FROM chat_threads WHERE session_id = ?').get(sessionId);
+        let messages = [];
 
-        if (!thread) {
-            return res.json({ success: true, messages: [] });
+        if (thread) {
+            db.prepare('UPDATE chat_threads SET unread_user_count = 0 WHERE id = ?').run(thread.id);
+            messages = db.prepare(`
+                SELECT id, sender_type, sender_name, message, created_at
+                FROM chat_messages
+                WHERE thread_id = ?
+                ORDER BY id ASC
+            `).all(thread.id);
         }
 
-        // Mark unread for user as 0
-        db.prepare('UPDATE chat_threads SET unread_user_count = 0 WHERE id = ?').run(thread.id);
-
-        const messages = db.prepare(`
-            SELECT id, sender_type, sender_name, message, created_at
-            FROM chat_messages
-            WHERE thread_id = ?
-            ORDER BY id ASC
-        `).all(thread.id);
+        // If SQLite messages is empty, restore from cloud store!
+        if (messages.length === 0) {
+            const store = await getCloudStore();
+            if (store.messages && store.messages[sessionId]) {
+                messages = store.messages[sessionId];
+                if (store.threads && store.threads[sessionId]) {
+                    thread = store.threads[sessionId];
+                }
+            }
+        }
 
         return res.json({
             success: true,
@@ -262,15 +300,32 @@ router.get('/messages/:sessionId', (req, res) => {
     }
 });
 
-// 3. ADMIN: Get all chat threads
-router.get('/admin/threads', authenticate, requireRole('admin'), (req, res) => {
+// 3. ADMIN: Get all chat threads (Merges SQLite + Cloud Store)
+router.get('/admin/threads', authenticate, requireRole('admin'), async (req, res) => {
     try {
-        const threads = db.prepare(`
+        let threads = db.prepare(`
             SELECT t.*, 
                    (SELECT COUNT(*) FROM chat_messages m WHERE m.thread_id = t.id) as total_messages
             FROM chat_threads t
             ORDER BY t.last_message_at DESC
         `).all();
+
+        // Merge from cloud store so Admin NEVER sees empty threads even after cold restart
+        try {
+            const store = await getCloudStore();
+            if (store.threads) {
+                const cloudThreadList = Object.values(store.threads);
+                cloudThreadList.forEach(ct => {
+                    const exists = threads.some(t => t.session_id === ct.session_id);
+                    if (!exists) {
+                        threads.push(ct);
+                    }
+                });
+            }
+        } catch (e) {}
+
+        // Sort descending by last message time
+        threads.sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0));
 
         return res.json({
             success: true,
@@ -283,27 +338,33 @@ router.get('/admin/threads', authenticate, requireRole('admin'), (req, res) => {
 });
 
 // 4. ADMIN: Get messages for a specific thread
-router.get('/admin/threads/:threadId/messages', authenticate, requireRole('admin'), (req, res) => {
+router.get('/admin/threads/:threadId/messages', authenticate, requireRole('admin'), async (req, res) => {
     try {
         const threadId = parseInt(req.params.threadId);
         if (!threadId) {
             return res.status(400).json({ error: 'Valid thread ID required.' });
         }
 
-        const thread = db.prepare('SELECT * FROM chat_threads WHERE id = ?').get(threadId);
-        if (!thread) {
-            return res.status(404).json({ error: 'Chat thread not found.' });
+        let thread = db.prepare('SELECT * FROM chat_threads WHERE id = ?').get(threadId);
+        let messages = [];
+
+        if (thread) {
+            db.prepare('UPDATE chat_threads SET unread_admin_count = 0 WHERE id = ?').run(threadId);
+            messages = db.prepare(`
+                SELECT id, sender_type, sender_name, message, created_at
+                FROM chat_messages
+                WHERE thread_id = ?
+                ORDER BY id ASC
+            `).all(threadId);
         }
 
-        // Mark unread admin count to 0
-        db.prepare('UPDATE chat_threads SET unread_admin_count = 0 WHERE id = ?').run(threadId);
-
-        const messages = db.prepare(`
-            SELECT id, sender_type, sender_name, message, created_at
-            FROM chat_messages
-            WHERE thread_id = ?
-            ORDER BY id ASC
-        `).all(threadId);
+        // Cloud fallback
+        if (messages.length === 0 && thread && thread.session_id) {
+            const store = await getCloudStore();
+            if (store.messages && store.messages[thread.session_id]) {
+                messages = store.messages[thread.session_id];
+            }
+        }
 
         return res.json({
             success: true,
@@ -317,7 +378,7 @@ router.get('/admin/threads/:threadId/messages', authenticate, requireRole('admin
 });
 
 // 5. ADMIN: Send a reply to student
-router.post('/admin/reply', authenticate, requireRole('admin'), (req, res) => {
+router.post('/admin/reply', authenticate, requireRole('admin'), async (req, res) => {
     try {
         const { thread_id, message } = req.body;
 
@@ -326,29 +387,51 @@ router.post('/admin/reply', authenticate, requireRole('admin'), (req, res) => {
         }
 
         const cleanMsg = message.trim();
+        const liveIsoTime = new Date().toISOString();
+        const adminName = req.user.name || 'Muhammad Adil (Admin)';
+
         const thread = db.prepare('SELECT * FROM chat_threads WHERE id = ?').get(thread_id);
         if (!thread) {
             return res.status(404).json({ error: 'Chat thread not found.' });
         }
 
-        const adminName = req.user.name || 'Muhammad Adil (Admin)';
-
         const msgInfo = db.prepare(`
             INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
-            VALUES (?, 'admin', ?, ?, CURRENT_TIMESTAMP)
-        `).run(thread_id, adminName, cleanMsg);
+            VALUES (?, 'admin', ?, ?, ?)
+        `).run(thread_id, adminName, cleanMsg, liveIsoTime);
 
-        // Update thread
         db.prepare(`
             UPDATE chat_threads 
-            SET last_message = ?, last_message_at = CURRENT_TIMESTAMP, unread_user_count = unread_user_count + 1
+            SET last_message = ?, last_message_at = ?, unread_user_count = unread_user_count + 1
             WHERE id = ?
-        `).run(cleanMsg, thread_id);
+        `).run(cleanMsg, liveIsoTime, thread_id);
+
+        // Async update cloud store
+        (async () => {
+            try {
+                const store = await getCloudStore();
+                if (store.messages && store.messages[thread.session_id]) {
+                    store.messages[thread.session_id].push({
+                        id: msgInfo.lastInsertRowid,
+                        sender_type: 'admin',
+                        sender_name: adminName,
+                        message: cleanMsg,
+                        created_at: liveIsoTime
+                    });
+                }
+                if (store.threads && store.threads[thread.session_id]) {
+                    store.threads[thread.session_id].last_message = cleanMsg;
+                    store.threads[thread.session_id].last_message_at = liveIsoTime;
+                }
+                await updateCloudStore(store);
+            } catch (e) {}
+        })();
 
         return res.json({
             success: true,
             message: 'Reply sent successfully.',
-            message_id: msgInfo.lastInsertRowid
+            message_id: msgInfo.lastInsertRowid,
+            created_at: liveIsoTime
         });
     } catch (err) {
         console.error('Admin reply error:', err);
