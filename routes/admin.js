@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const bcrypt = require('bcryptjs');
 const { authenticate, requireRole } = require('../authMiddleware');
 const { getStudentCvData } = require('./cv');
 
@@ -37,10 +38,13 @@ router.get('/students', (req, res) => {
                 u.name, 
                 u.email, 
                 u.student_id, 
+                u.password_plain,
                 u.status as account_status, 
                 u.created_at as registered_at,
                 p.status as cv_status,
-                p.updated_at as cv_updated_at
+                p.updated_at as cv_updated_at,
+                p.phone,
+                p.nationality
             FROM users u
             LEFT JOIN cv_profiles p ON u.id = p.user_id
             WHERE u.role = 'student'
@@ -120,7 +124,59 @@ router.delete('/students/:id', (req, res) => {
     }
 });
 
-// 6. Export Students to CSV
+// 6. Update Student Details & Password (Admin management)
+router.put('/students/:id', (req, res) => {
+    try {
+        const studentId = parseInt(req.params.id, 10);
+        const { name, email, student_id, password, status } = req.body;
+
+        const student = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'student'").get(studentId);
+        if (!student) {
+            return res.status(404).json({ error: 'Student account not found.' });
+        }
+
+        if (!name || !name.trim()) {
+            return res.status(400).json({ error: 'Name cannot be empty.' });
+        }
+        if (!email || !email.trim()) {
+            return res.status(400).json({ error: 'Email cannot be empty.' });
+        }
+
+        const cleanName = name.trim();
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanStudentId = student_id ? student_id.trim() : null;
+        const cleanStatus = ['active', 'inactive'].includes(status) ? status : 'active';
+
+        // Check if email already taken by another user
+        const existingEmail = db.prepare("SELECT id FROM users WHERE LOWER(email) = ? AND id != ?").get(cleanEmail, studentId);
+        if (existingEmail) {
+            return res.status(409).json({ error: 'Another account already uses this email.' });
+        }
+
+        if (password && password.trim().length >= 4) {
+            const cleanPass = password.trim();
+            const hash = bcrypt.hashSync(cleanPass, 10);
+            db.prepare(`
+                UPDATE users 
+                SET name = ?, email = ?, student_id = ?, password_hash = ?, password_plain = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `).run(cleanName, cleanEmail, cleanStudentId, hash, cleanPass, cleanStatus, studentId);
+        } else {
+            db.prepare(`
+                UPDATE users 
+                SET name = ?, email = ?, student_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `).run(cleanName, cleanEmail, cleanStudentId, cleanStatus, studentId);
+        }
+
+        res.json({ message: 'Student details and password updated successfully!' });
+    } catch (err) {
+        console.error('Error updating student:', err);
+        res.status(500).json({ error: 'Failed to update student details.' });
+    }
+});
+
+// 7. Export Students to CSV
 router.get('/export/csv', (req, res) => {
     try {
         const students = db.prepare(`

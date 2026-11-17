@@ -34,12 +34,20 @@ function initDatabase() {
             email TEXT UNIQUE NOT NULL,
             student_id TEXT,
             password_hash TEXT NOT NULL,
+            password_plain TEXT,
             role TEXT NOT NULL DEFAULT 'student',
             status TEXT NOT NULL DEFAULT 'active',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     `);
+
+    // Ensure password_plain column exists in existing database
+    try {
+        db.exec("ALTER TABLE users ADD COLUMN password_plain TEXT;");
+    } catch (e) {
+        // Column already exists
+    }
 
     // 2. StudentProfile / CV Metadata Table
     db.exec(`
@@ -225,16 +233,16 @@ function seedAdmin() {
     if (existing) {
         db.prepare(`
             UPDATE users 
-            SET name = ?, email = ?, student_id = ?, password_hash = ?, role = 'admin', status = 'active', updated_at = CURRENT_TIMESTAMP
+            SET name = ?, email = ?, student_id = ?, password_hash = ?, password_plain = ?, role = 'admin', status = 'active', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        `).run(adminName, adminEmail, adminUsername, hash, existing.id);
+        `).run(adminName, adminEmail, adminUsername, hash, adminPassword, existing.id);
         console.log(`[Database] Admin credentials updated for ${adminUsername} / ${adminEmail}`);
     } else {
         const insertStmt = db.prepare(`
-            INSERT INTO users (name, email, student_id, password_hash, role, status)
-            VALUES (?, ?, ?, ?, 'admin', 'active')
+            INSERT INTO users (name, email, student_id, password_hash, password_plain, role, status)
+            VALUES (?, ?, ?, ?, ?, 'admin', 'active')
         `);
-        insertStmt.run(adminName, adminEmail, adminUsername, hash);
+        insertStmt.run(adminName, adminEmail, adminUsername, hash, adminPassword);
         console.log(`[Database] Sole Admin account created for: ${adminUsername} / ${adminEmail}`);
     }
 }
@@ -245,10 +253,12 @@ function seedInitialStudents() {
     if (!adilStudent) {
         const hash = bcrypt.hashSync('Adil@123', 10);
         db.prepare(`
-            INSERT INTO users (id, name, email, student_id, password_hash, role, status)
-            VALUES (3, 'Muhammad Adil', 'adil@gmail.com', 'MBF24004331', ?, 'student', 'active')
+            INSERT INTO users (id, name, email, student_id, password_hash, password_plain, role, status)
+            VALUES (3, 'Muhammad Adil', 'adil@gmail.com', 'MBF24004331', ?, 'Adil@123', 'student', 'active')
         `).run(hash);
         db.prepare("INSERT OR IGNORE INTO cv_profiles (user_id, status) VALUES (3, 'Completed')").run();
+    } else {
+        db.prepare("UPDATE users SET password_plain = 'Adil@123' WHERE id = ?").run(adilStudent.id);
     }
 
     // 2. Ensure Muhammad Umar (Student Account) exists and is protected
@@ -256,12 +266,14 @@ function seedInitialStudents() {
     if (!umarStudent) {
         const hash = bcrypt.hashSync('123456', 10);
         const res = db.prepare(`
-            INSERT INTO users (name, email, student_id, password_hash, role, status)
-            VALUES ('Muhammad Umar', 'umar@university.edu', 'STU2026Umar', ?, 'student', 'active')
+            INSERT INTO users (name, email, student_id, password_hash, password_plain, role, status)
+            VALUES ('Muhammad Umar', 'umar@university.edu', 'STU2026Umar', ?, '123456', 'student', 'active')
         `).run(hash);
         const umarId = res.lastInsertRowid;
         db.prepare("INSERT OR IGNORE INTO cv_profiles (user_id, status) VALUES (?, 'Draft')").run(umarId);
         console.log(`[Database] Seeded student Muhammad Umar (ID: ${umarId})`);
+    } else {
+        db.prepare("UPDATE users SET password_plain = '123456' WHERE id = ?").run(umarStudent.id);
     }
 }
 

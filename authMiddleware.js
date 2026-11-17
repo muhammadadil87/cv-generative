@@ -64,6 +64,7 @@ function authenticate(req, res, next) {
         req.user = user;
         next();
     } catch (err) {
+        console.error('Auth verification error:', err);
         return res.status(401).json({ error: 'Session expired or invalid token. Please log in again.' });
     }
 }

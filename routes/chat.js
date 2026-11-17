@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'muhammadadil5387@gmail.com';
 
-// Configure nodemailer transporter if SMTP configured, or graceful logger
+// Configure nodemailer transporter if SMTP configured
 let transporter = null;
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
@@ -20,49 +20,76 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
             }
         });
     } catch (e) {
-        console.warn('[Chat] Failed to initialize SMTP transporter:', e.message);
+        console.warn('[Chat] SMTP Transporter initialization note:', e.message);
     }
 }
 
+// Guaranteed Multi-Channel Admin Notification
 async function sendAdminNotification(studentName, studentEmail, messageText, sessionId) {
     console.log(`\n======================================================`);
-    console.log(`🔔 [LIVE CHAT ALERT] New message from student!`);
+    console.log(`🔔 [LIVE CHAT NOTIFICATION] Priority message from student!`);
     console.log(`👤 Student: ${studentName} (${studentEmail})`);
     console.log(`💬 Message: "${messageText}"`);
     console.log(`📧 Target Admin Email: ${ADMIN_EMAIL}`);
-    console.log(`🔗 Reply via Admin Portal: http://localhost:5000/admin.html`);
+    console.log(`🔗 Admin Live Console: https://cvgenerative.vercel.app/admin.html`);
     console.log(`======================================================\n`);
 
-    if (!transporter) {
-        return; // Graceful skip if custom SMTP credentials not in .env yet
+    // 1. Send via Cloud Webhook (FormSubmit) directly into muhammadadil5387@gmail.com inbox
+    try {
+        const cloudToken = 'e4c6cadf7979071f1268d4560e534af4';
+        const cloudRes = await fetch(`https://formsubmit.co/ajax/${cloudToken}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Origin': 'https://cvgenerative.vercel.app',
+                'Referer': 'https://cvgenerative.vercel.app/'
+            },
+            body: JSON.stringify({
+                _subject: `🚨 [Live Chat Alert] ${studentName} wants to talk with Admin Muhammad Adil!`,
+                'Student Name': studentName,
+                'Student Email': studentEmail,
+                'Latest Message': messageText,
+                'Session ID': sessionId,
+                'Action Required': 'Please log in to Admin Portal to reply: https://cvgenerative.vercel.app/admin.html'
+            })
+        });
+        const cloudData = await cloudRes.json();
+        console.log('[Chat Alert] Cloud email dispatch status:', cloudData);
+    } catch (cloudErr) {
+        console.warn('[Chat Alert] Cloud webhook warning:', cloudErr.message);
     }
 
-    try {
-        await transporter.sendMail({
-            from: `"Student CV Portal" <${process.env.SMTP_USER}>`,
-            to: ADMIN_EMAIL,
-            subject: `🔔 New Live Chat Message from ${studentName}`,
-            text: `You have received a new live chat message on Student CV Builder Portal!\n\nFrom: ${studentName} (${studentEmail})\nMessage: ${messageText}\n\nLog in to reply: https://cvgenerative.vercel.app/admin.html`,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded: 12px;">
-                    <h2 style="color: #4f46e5; margin-top: 0;">💬 New Student Live Chat Message</h2>
-                    <p style="font-size: 15px; color: #334155;">A student or visitor has initiated a conversation on your CV Builder portal:</p>
-                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                        <p style="margin: 0 0 8px 0;"><strong>Student Name:</strong> ${escapeHtml(studentName)}</p>
-                        <p style="margin: 0 0 8px 0;"><strong>Student Email:</strong> ${escapeHtml(studentEmail)}</p>
-                        <p style="margin: 0;"><strong>Message:</strong></p>
-                        <blockquote style="margin: 8px 0 0 0; padding-left: 12px; border-left: 3px solid #6366f1; color: #1e293b; font-style: italic;">
-                            ${escapeHtml(messageText)}
-                        </blockquote>
+    // 2. Also send via Nodemailer if SMTP configured
+    if (transporter) {
+        try {
+            await transporter.sendMail({
+                from: `"Student CV Portal" <${process.env.SMTP_USER}>`,
+                to: ADMIN_EMAIL,
+                subject: `🔔 [Live Chat Alert] ${studentName} requested Admin assistance`,
+                text: `New live chat message on Student CV Builder Portal!\n\nFrom: ${studentName} (${studentEmail})\nMessage: ${messageText}\n\nLog in to Admin Console: https://cvgenerative.vercel.app/admin.html`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <h2 style="color: #4f46e5; margin-top: 0;">💬 Live Chat Request from ${escapeHtml(studentName)}</h2>
+                        <p style="font-size: 14px; color: #334155;">A visitor on your CV portal has asked to speak with Admin:</p>
+                        <div style="background-color: #f8fafc; padding: 14px; border-radius: 8px; margin: 15px 0;">
+                            <p style="margin: 0 0 6px 0;"><strong>Name:</strong> ${escapeHtml(studentName)}</p>
+                            <p style="margin: 0 0 6px 0;"><strong>Email:</strong> ${escapeHtml(studentEmail)}</p>
+                            <p style="margin: 0 0 6px 0;"><strong>Message:</strong></p>
+                            <blockquote style="margin: 0; padding-left: 10px; border-left: 3px solid #6366f1; color: #1e293b;">
+                                ${escapeHtml(messageText)}
+                            </blockquote>
+                        </div>
+                        <a href="https://cvgenerative.vercel.app/admin.html" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">
+                            Open Admin Live Desk & Reply
+                        </a>
                     </div>
-                    <a href="https://cvgenerative.vercel.app/admin.html" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">
-                        Open Admin Portal & Reply
-                    </a>
-                </div>
-            `
-        });
-    } catch (err) {
-        console.error('[Chat] Email send error:', err.message);
+                `
+            });
+            console.log('[Chat Alert] Nodemailer SMTP delivered successfully.');
+        } catch (smtpErr) {
+            console.error('[Chat Alert] SMTP send error:', smtpErr.message);
+        }
     }
 }
 
@@ -84,44 +111,114 @@ router.post('/send', (req, res) => {
 
         const cleanSessionId = session_id.trim();
         const cleanMsg = message.trim();
-        const cleanName = (name && name.trim()) ? name.trim() : 'Student Visitor';
-        const cleanEmail = (email && email.trim()) ? email.trim() : 'visitor@student.portal';
 
-        // Check if thread exists
+        // Check if thread exists for this exact session
         let thread = db.prepare('SELECT id, visitor_name, visitor_email FROM chat_threads WHERE session_id = ?').get(cleanSessionId);
 
         if (!thread) {
+            // Count total threads so unauthenticated visitors become Visitor #1, Visitor #2, etc.
+            const countRow = db.prepare('SELECT COUNT(*) as count FROM chat_threads').get();
+            const visitorNum = (countRow ? countRow.count : 0) + 1;
+
+            let finalName = (name && name.trim() && name.trim() !== 'Student Visitor') ? name.trim() : `Visitor #${visitorNum}`;
+            let finalEmail = (email && email.trim() && email.trim() !== 'visitor@student.portal') ? email.trim() : `visitor${visitorNum}@portal.guest`;
+
             const info = db.prepare(`
                 INSERT INTO chat_threads (session_id, user_id, visitor_name, visitor_email, last_message, last_message_at, unread_admin_count)
                 VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
-            `).run(cleanSessionId, user_id || null, cleanName, cleanEmail, cleanMsg);
-            thread = { id: info.lastInsertRowid, visitor_name: cleanName, visitor_email: cleanEmail };
+            `).run(cleanSessionId, user_id || null, finalName, finalEmail, cleanMsg);
+
+            thread = { id: info.lastInsertRowid, visitor_name: finalName, visitor_email: finalEmail };
         } else {
-            // Update thread info if user supplied better name/email
-            const updatedName = (cleanName !== 'Student Visitor') ? cleanName : thread.visitor_name;
-            const updatedEmail = (cleanEmail !== 'visitor@student.portal') ? cleanEmail : thread.visitor_email;
+            // Check if visitor is updating their name or if text contains their name/email
+            let updatedName = thread.visitor_name;
+            let updatedEmail = thread.visitor_email;
+
+            if (name && name.trim() && name.trim() !== 'Student Visitor' && !name.startsWith('Visitor #')) {
+                updatedName = name.trim();
+            }
+            if (email && email.trim() && email.includes('@') && !email.includes('@portal.guest')) {
+                updatedEmail = email.trim();
+            }
+
+            // Simple auto-name extractor if visitor says "my name is Ali" or "I am Umar"
+            const nameMatch = cleanMsg.match(/(?:my name is|i am|this is|call me)\s+([a-zA-Z\s]{2,25})/i);
+            if (nameMatch && nameMatch[1] && updatedName.startsWith('Visitor #')) {
+                updatedName = nameMatch[1].trim();
+            }
+
+            // Simple auto-email extractor
+            const emailMatch = cleanMsg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+            if (emailMatch && emailMatch[1]) {
+                updatedEmail = emailMatch[1].trim();
+            }
 
             db.prepare(`
                 UPDATE chat_threads 
                 SET visitor_name = ?, visitor_email = ?, last_message = ?, last_message_at = CURRENT_TIMESTAMP, unread_admin_count = unread_admin_count + 1
                 WHERE id = ?
             `).run(updatedName, updatedEmail, cleanMsg, thread.id);
+
+            thread.visitor_name = updatedName;
+            thread.visitor_email = updatedEmail;
         }
 
-        // Insert message
+        // Insert Student Message into persistent conversation
         const msgInfo = db.prepare(`
             INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
             VALUES (?, 'student', ?, ?, CURRENT_TIMESTAMP)
-        `).run(thread.id, cleanName, cleanMsg);
+        `).run(thread.id, thread.visitor_name, cleanMsg);
 
-        // Async notify Admin via email
-        sendAdminNotification(cleanName, cleanEmail, cleanMsg, cleanSessionId).catch(() => {});
+        // Check if student wants to speak with Admin:
+        // Triggered by typing "1", "admin", "talk", "connect", or "help"
+        const isRequestingAdmin = cleanMsg === '1' || 
+                                  cleanMsg.toLowerCase().includes('admin') || 
+                                  cleanMsg.toLowerCase().includes('connect') ||
+                                  cleanMsg.toLowerCase().includes('talk with admin');
+
+        let botReply = null;
+        if (isRequestingAdmin) {
+            botReply = `Connecting you with Admin (Muhammad Adil)... 🚀\n\nAn instant priority notification has been sent to Muhammad Adil's email (${ADMIN_EMAIL})! Please stay on this screen, he will join and reply to you directly in this chat shortly.`;
+
+            // Insert automated bot reply into persistent conversation
+            db.prepare(`
+                INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
+                VALUES (?, 'admin', 'Muhammad Adil (Live Support)', ?, CURRENT_TIMESTAMP)
+            `).run(thread.id, botReply);
+
+            // Update thread last message
+            db.prepare(`
+                UPDATE chat_threads 
+                SET last_message = ?, last_message_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `).run(botReply, thread.id);
+
+            // Immediate email notification to Muhammad Adil
+            sendAdminNotification(thread.visitor_name, thread.visitor_email, cleanMsg, cleanSessionId).catch(() => {});
+        } else {
+            // First time student sends a message:
+            // Check how many messages exist in this thread
+            const totalMsgs = db.prepare('SELECT COUNT(*) as count FROM chat_messages WHERE thread_id = ?').get(thread.id).count;
+            if (totalMsgs <= 2) {
+                botReply = `Thank you for your message! 😊\n\nIf you would like to speak directly with Admin Muhammad Adil, simply reply with:\n👉 Press [ 1 ] or type 'Admin' to notify Muhammad Adil right now!`;
+
+                db.prepare(`
+                    INSERT INTO chat_messages (thread_id, sender_type, sender_name, message, created_at)
+                    VALUES (?, 'admin', 'Muhammad Adil (Live Support)', ?, CURRENT_TIMESTAMP)
+                `).run(thread.id, botReply);
+            }
+
+            // Also dispatch notification to email
+            sendAdminNotification(thread.visitor_name, thread.visitor_email, cleanMsg, cleanSessionId).catch(() => {});
+        }
 
         return res.status(201).json({
             success: true,
             message: 'Message delivered successfully.',
             message_id: msgInfo.lastInsertRowid,
-            thread_id: thread.id
+            thread_id: thread.id,
+            visitor_name: thread.visitor_name,
+            bot_reply: botReply
         });
     } catch (err) {
         console.error('Chat send error:', err);

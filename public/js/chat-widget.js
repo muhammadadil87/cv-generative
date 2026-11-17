@@ -85,11 +85,24 @@
                 <div class="flex items-start space-x-2">
                     <img src="/images/creator-profile.jpg" class="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5 border border-slate-200" onerror="this.src='https://ui-avatars.com/api/?name=Muhammad+Adil&background=4f46e5&color=fff'">
                     <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-xs max-w-[85%]">
-                        <p class="font-bold text-[11px] text-indigo-600 mb-1">Muhammad Adil (Creator)</p>
-                        <p class="leading-relaxed">Assalam-o-Alaikum! 👋 How can I help you with your CV, university format, or portal account today?</p>
-                        <span class="block text-[9px] text-slate-400 mt-1.5">Just now</span>
+                        <p class="font-bold text-[11px] text-indigo-600 mb-1">Muhammad Adil (Creator & Admin)</p>
+                        <p class="leading-relaxed">Hello! 👋 Welcome to Student CV Portal. How can I assist you with your CV today?</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Reply here or press <strong>[ 1 ]</strong> to connect with Admin directly.</p>
+                        <span class="block text-[9px] text-slate-400 mt-1.5">Live Support Desk</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Quick Connect Admin Bar -->
+            <div class="px-3 py-1.5 bg-indigo-50/80 border-t border-indigo-100 flex items-center justify-between flex-shrink-0">
+                <span class="text-[11px] text-indigo-900 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-headset text-indigo-600 text-xs"></i>
+                    Speak with Admin?
+                </span>
+                <button type="button" id="cv-chat-quick-admin-btn" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-2xs">
+                    <i class="fa-solid fa-paper-plane text-[9px]"></i>
+                    <span>Press 1 (Notify Admin)</span>
+                </button>
             </div>
 
             <!-- Input Box & Actions -->
@@ -151,6 +164,14 @@
     chatTrigger.addEventListener('click', () => toggleChat());
     chatClose.addEventListener('click', () => toggleChat(false));
     chatRefresh.addEventListener('click', () => fetchMessages());
+
+    const quickAdminBtn = document.getElementById('cv-chat-quick-admin-btn');
+    if (quickAdminBtn) {
+        quickAdminBtn.addEventListener('click', () => {
+            chatInput.value = '1';
+            chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        });
+    }
 
     // Send Message
     chatForm.addEventListener('submit', async (e) => {

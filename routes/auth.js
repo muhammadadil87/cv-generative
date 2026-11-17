@@ -46,9 +46,9 @@ router.post('/register', (req, res) => {
 
         const insertUser = db.transaction(() => {
             const result = db.prepare(`
-                INSERT INTO users (name, email, student_id, password_hash, role, status)
-                VALUES (?, ?, ?, ?, 'student', 'active')
-            `).run(trimmedName, normalizedEmail, trimmedStudentId, password_hash);
+                INSERT INTO users (name, email, student_id, password_hash, password_plain, role, status)
+                VALUES (?, ?, ?, ?, ?, 'student', 'active')
+            `).run(trimmedName, normalizedEmail, trimmedStudentId, password_hash, password);
 
             const userId = result.lastInsertRowid;
 

@@ -187,9 +187,9 @@
                         <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
                             <th class="py-3 px-4">Student</th>
                             <th class="py-3 px-4">ID / Reg No.</th>
+                            <th class="py-3 px-4">Login Password</th>
                             <th class="py-3 px-4">Account Status</th>
                             <th class="py-3 px-4">CV Status</th>
-                            <th class="py-3 px-4">Registered Date</th>
                             <th class="py-3 px-4">Last Updated</th>
                             <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
@@ -377,6 +377,84 @@
         </div>
     </div>
 
+    <!-- Edit Student & Change Password Modal (Admin Credentials Management) -->
+    <div id="edit-student-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base shadow-xs">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900">Edit Student Credentials & Details</h3>
+                        <p class="text-[11px] text-slate-500">Update username, email, and view or change login password</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeEditStudentModal()" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <form id="edit-student-form" class="p-6 space-y-4">
+                <input type="hidden" id="edit-modal-id">
+                <div id="edit-modal-error" class="hidden p-3 rounded-xl bg-red-50 text-red-700 text-xs font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                    <span id="edit-modal-error-text">Failed to update student.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name *</label>
+                    <input type="text" id="edit-modal-name" required class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Email / Gmail *</label>
+                        <input type="email" id="edit-modal-email" required class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Username / Reg No.</label>
+                        <input type="text" id="edit-modal-student-id" class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700">
+                            Student Login Password *
+                        </label>
+                        <button type="button" onclick="generateRandomPass()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800">
+                            + Generate Random
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="edit-modal-password" required placeholder="Enter password (minimum 4 characters)"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs font-mono font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <span class="text-[10px] text-slate-500 mt-1 block">You can view this student's password or type any new password and click Save.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Account Status</label>
+                    <select id="edit-modal-status" class="w-full px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="active">Active (Account unlocked - can log in)</option>
+                        <option value="inactive">Inactive (Deactivated)</option>
+                    </select>
+                </div>
+
+                <div class="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2">
+                    <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="edit-modal-submit-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i>
+                        <span>Save & Update Credentials</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Dedicated off-screen slot for pristine A4 PDF generation (no negative coordinates) -->
     <div id="pdf-render-slot" style="position: absolute; left: 0; top: 0; z-index: -9999; pointer-events: none;"></div>
 
@@ -535,28 +613,40 @@
                         ? `<span class="inline-flex items-center text-emerald-700 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Active</span>`
                         : `<span class="inline-flex items-center text-red-600 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>Inactive</span>`;
 
-                    const regDate = s.registered_at ? new Date(s.registered_at).toLocaleDateString() : '-';
-                    const upDate = s.cv_updated_at ? new Date(s.cv_updated_at).toLocaleDateString() : 'Never';
+                    const upDate = s.cv_updated_at ? new Date(s.cv_updated_at).toLocaleDateString() : (s.registered_at ? new Date(s.registered_at).toLocaleDateString() : '-');
+                    const passText = s.password_plain || '123456';
+                    const safeJsonStudent = JSON.stringify(s).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 
                     return `
                         <tr class="hover:bg-slate-50/80 transition">
                             <td class="py-3 px-4">
                                 <div class="font-bold text-slate-900">${escapeHtml(s.name)}</div>
-                                <div class="text-[11px] text-slate-500">${escapeHtml(s.email)}</div>
+                                <div class="text-[11px] text-slate-500 font-mono">${escapeHtml(s.email)}</div>
+                                ${s.phone ? `<div class="text-[10px] text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-phone text-[9px] mr-1"></i>${escapeHtml(s.phone)}</div>` : ''}
                             </td>
-                            <td class="py-3 px-4 font-mono font-medium text-slate-600">${escapeHtml(s.student_id || 'N/A')}</td>
+                            <td class="py-3 px-4 font-mono font-medium text-slate-700">${escapeHtml(s.student_id || 'N/A')}</td>
+                            <td class="py-3 px-4">
+                                <div class="inline-flex items-center gap-1.5 bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg font-mono text-xs">
+                                    <span id="pass-display-${s.id}" data-actual="${escapeHtml(passText)}" data-masked="true">••••••••</span>
+                                    <button type="button" onclick="togglePassView(${s.id})" title="Show/Hide Password" class="text-slate-400 hover:text-indigo-600 focus:outline-none ml-1">
+                                        <i class="fa-solid fa-eye text-xs" id="pass-eye-${s.id}"></i>
+                                    </button>
+                                </div>
+                            </td>
                             <td class="py-3 px-4">${accountBadge}</td>
                             <td class="py-3 px-4">${cvBadge}</td>
-                            <td class="py-3 px-4 text-slate-500">${regDate}</td>
                             <td class="py-3 px-4 text-slate-500">${upDate}</td>
-                            <td class="py-3 px-4 text-right space-x-1.5">
+                            <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
                                 <button onclick="viewStudentCv(${s.id})" title="View CV Preview" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-xs transition">
                                     <i class="fa-solid fa-eye mr-1"></i>View CV
                                 </button>
-                                <button onclick="toggleStudentStatus(${s.id}, '${s.account_status === 'active' ? 'inactive' : 'active'}')" title="${s.account_status === 'active' ? 'Deactivate Account' : 'Activate Account'}" class="px-2.5 py-1 ${s.account_status === 'active' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} font-semibold rounded-lg text-xs transition">
+                                <button onclick='openEditStudentModal(${safeJsonStudent})' title="Edit Student & Change Password" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold rounded-lg text-xs transition border border-amber-200/60">
+                                    <i class="fa-solid fa-key mr-1 text-[10px]"></i>Edit / Pass
+                                </button>
+                                <button onclick="toggleStudentStatus(${s.id}, '${s.account_status === 'active' ? 'inactive' : 'active'}')" title="${s.account_status === 'active' ? 'Deactivate Account' : 'Activate Account'}" class="px-2 py-1 ${s.account_status === 'active' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} font-semibold rounded-lg text-xs transition">
                                     ${s.account_status === 'active' ? 'Deactivate' : 'Activate'}
                                 </button>
-                                <button onclick="deleteStudent(${s.id}, '${escapeHtml(s.name)}')" title="Delete Student" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-xs transition">
+                                <button onclick="deleteStudent(${s.id}, '${escapeHtml(s.name)}')" title="Delete Student" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-xs transition">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </td>
@@ -691,6 +781,104 @@
                 alert('Error deleting student.');
             }
         }
+
+        // Toggle plain password visibility in table
+        function togglePassView(id) {
+            const span = document.getElementById(`pass-display-${id}`);
+            const icon = document.getElementById(`pass-eye-${id}`);
+            if (!span || !icon) return;
+
+            const isMasked = span.getAttribute('data-masked') === 'true';
+            const actualPass = span.getAttribute('data-actual') || '';
+
+            if (isMasked) {
+                span.textContent = actualPass;
+                span.setAttribute('data-masked', 'false');
+                icon.className = 'fa-solid fa-eye-slash text-xs text-indigo-600';
+            } else {
+                span.textContent = '••••••••';
+                span.setAttribute('data-masked', 'true');
+                icon.className = 'fa-solid fa-eye text-xs text-slate-400';
+            }
+        }
+
+        // Open Edit Student & Password Modal
+        function openEditStudentModal(student) {
+            if (!student) return;
+            document.getElementById('edit-modal-id').value = student.id;
+            document.getElementById('edit-modal-name').value = student.name || '';
+            document.getElementById('edit-modal-email').value = student.email || '';
+            document.getElementById('edit-modal-student-id').value = student.student_id || '';
+            document.getElementById('edit-modal-password').value = student.password_plain || '123456';
+            document.getElementById('edit-modal-status').value = student.account_status || 'active';
+            document.getElementById('edit-modal-error').classList.add('hidden');
+
+            const modal = document.getElementById('edit-student-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditStudentModal() {
+            const modal = document.getElementById('edit-student-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function generateRandomPass() {
+            const words = ['Umar', 'Student', 'Adil', 'Portal', 'Campus', 'Fast'];
+            const word = words[Math.floor(Math.random() * words.length)];
+            const num = Math.floor(100 + Math.random() * 900);
+            const chars = ['@', '#', '$', '!'];
+            const char = chars[Math.floor(Math.random() * chars.length)];
+            document.getElementById('edit-modal-password').value = `${word}${char}${num}`;
+        }
+
+        // Handle Edit Student Form Submit
+        document.getElementById('edit-student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-modal-id').value;
+            const name = document.getElementById('edit-modal-name').value.trim();
+            const email = document.getElementById('edit-modal-email').value.trim();
+            const student_id = document.getElementById('edit-modal-student-id').value.trim();
+            const password = document.getElementById('edit-modal-password').value.trim();
+            const status = document.getElementById('edit-modal-status').value;
+
+            const errBox = document.getElementById('edit-modal-error');
+            const errText = document.getElementById('edit-modal-error-text');
+            const submitBtn = document.getElementById('edit-modal-submit-btn');
+
+            errBox.classList.add('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/admin/students/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Auth.getToken()}`
+                    },
+                    body: JSON.stringify({ name, email, student_id, password, status })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    errText.textContent = data.error || 'Failed to update student.';
+                    errBox.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                closeEditStudentModal();
+                fetchStudents();
+                fetchStats();
+            } catch (err) {
+                console.error(err);
+                errText.textContent = 'Network or server error.';
+                errBox.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
 
         function formatCefrDisplay(val) {
             if (!val || val === '-') return '-';
