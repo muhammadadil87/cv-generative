@@ -172,6 +172,37 @@ function initDatabase() {
         );
     `);
 
+    // 11. Live Student Chat Threads
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS chat_threads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT UNIQUE NOT NULL,
+            user_id INTEGER,
+            visitor_name TEXT NOT NULL,
+            visitor_email TEXT NOT NULL,
+            last_message TEXT,
+            last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            unread_admin_count INTEGER DEFAULT 0,
+            unread_user_count INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'active',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        );
+    `);
+
+    // 12. Live Student Chat Messages
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thread_id INTEGER NOT NULL,
+            sender_type TEXT NOT NULL, -- 'student' or 'admin'
+            sender_name TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (thread_id) REFERENCES chat_threads(id) ON DELETE CASCADE
+        );
+    `);
+
     // Ensure Initial Admin Account exists
     seedAdmin();
 }

@@ -26,6 +26,10 @@
 
             <div class="flex items-center space-x-4">
                 <span id="admin-info" class="text-xs text-slate-300 font-medium hidden sm:inline">Admin: Muhammad Adil (adil5387)</span>
+                <a href="#live-chat-section" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Live Chats</span>
+                </a>
                 <button onclick="Auth.logout()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white transition flex items-center space-x-1.5 border border-slate-700">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <span>Log Out</span>
@@ -173,6 +177,101 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Live Student Chat Management Card (Real-Time Conversations) -->
+        <div id="live-chat-section" class="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-50 to-indigo-50/30">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-indigo-600"></i>
+                        <span>Live Student & Visitor Chats</span>
+                        <span id="chat-total-unread-badge" class="hidden text-xs bg-red-500 text-white font-extrabold px-2 py-0.5 rounded-full">0 New</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Chat in real-time with students and visitors directly from this portal</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Admin Desk Active
+                    </span>
+                    <button onclick="fetchChatThreads()" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh Chats</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Split Screen Container -->
+            <div class="grid grid-cols-1 md:grid-cols-12 min-h-[500px] h-[550px]">
+                <!-- Left: Threads List (md:col-span-4) -->
+                <div class="md:col-span-4 border-r border-slate-200 flex flex-col bg-slate-50/50">
+                    <div class="p-3 border-b border-slate-200 bg-white">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            </span>
+                            <input type="text" id="chat-search-input" placeholder="Search conversations..." oninput="filterChatThreads()"
+                                class="w-full pl-8 pr-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div id="chat-threads-list" class="flex-1 overflow-y-auto divide-y divide-slate-100">
+                        <div class="p-6 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-500 mb-2"></i>
+                            <p>Loading conversations...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Active Conversation (md:col-span-8) -->
+                <div class="md:col-span-8 flex flex-col bg-white">
+                    <!-- Blank state when no thread selected -->
+                    <div id="chat-empty-state" class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-2xl mb-3 shadow-inner">
+                            <i class="fa-regular fa-comments"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-700 text-sm">No Conversation Selected</h4>
+                        <p class="text-xs text-slate-500 max-w-sm mt-1">Select a student or visitor from the left list to view their message history and reply in real-time.</p>
+                    </div>
+
+                    <!-- Active chat screen -->
+                    <div id="chat-active-screen" class="hidden flex-1 flex flex-col h-full">
+                        <!-- Active Chat Header -->
+                        <div class="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70 flex-shrink-0">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs border border-indigo-200" id="active-chat-avatar">
+                                    ST
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-xs" id="active-chat-name">Student Name</h4>
+                                    <p class="text-[11px] text-slate-500" id="active-chat-email">email@student.com</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a id="active-chat-mailto" href="#" target="_blank" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold rounded-lg transition inline-flex items-center gap-1.5 shadow-2xs">
+                                    <i class="fa-solid fa-envelope text-indigo-600"></i>
+                                    <span>Open Gmail</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Active Messages Stage -->
+                        <div id="active-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/40 text-xs">
+                            <!-- Messages rendered dynamically -->
+                        </div>
+
+                        <!-- Admin Reply Input -->
+                        <form id="active-chat-reply-form" class="p-3 border-t border-slate-200 bg-white flex items-center space-x-2 flex-shrink-0">
+                            <input type="text" id="active-chat-input" placeholder="Type reply as Muhammad Adil (Admin)..." autocomplete="off" required
+                                class="flex-1 px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                            <button type="submit" id="active-chat-send-btn" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition">
+                                <span>Send</span>
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -739,10 +838,221 @@
         document.getElementById('search-input').addEventListener('input', () => fetchStudents());
         document.getElementById('status-filter').addEventListener('change', () => fetchStudents());
 
+        // ==========================================
+        // LIVE STUDENT CHAT DESK (ADMIN REAL-TIME)
+        // ==========================================
+        let allChatThreads = [];
+        let selectedThreadId = null;
+        let adminChatPoll = null;
+
+        async function fetchChatThreads() {
+            try {
+                const res = await Auth.fetchWithAuth('/api/chat/admin/threads');
+                const data = await res.json();
+                if (data.success && data.threads) {
+                    allChatThreads = data.threads;
+                    renderChatThreads(allChatThreads);
+
+                    // Update total unread badge
+                    const totalUnread = allChatThreads.reduce((sum, t) => sum + (t.unread_admin_count || 0), 0);
+                    const unreadBadge = document.getElementById('chat-total-unread-badge');
+                    if (unreadBadge) {
+                        if (totalUnread > 0) {
+                            unreadBadge.textContent = `${totalUnread} New`;
+                            unreadBadge.classList.remove('hidden');
+                        } else {
+                            unreadBadge.classList.add('hidden');
+                        }
+                    }
+
+                    // If a thread is currently open, refresh its messages
+                    if (selectedThreadId) {
+                        fetchActiveThreadMessages(false);
+                    }
+                }
+            } catch (err) {
+                console.error('Fetch chat threads error:', err);
+            }
+        }
+
+        function renderChatThreads(threads) {
+            const listContainer = document.getElementById('chat-threads-list');
+            if (!listContainer) return;
+
+            if (!threads || threads.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 text-xs">
+                        <i class="fa-regular fa-comment-dots text-2xl mb-2 text-slate-300"></i>
+                        <p class="font-semibold">No live chat messages yet.</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">When students or visitors chat, conversations appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = threads.map(t => {
+                const isSelected = (selectedThreadId === t.id);
+                const timeStr = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const unread = t.unread_admin_count || 0;
+                const initials = (t.visitor_name || 'ST').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+
+                return `
+                    <div onclick="openChatThread(${t.id})" 
+                         class="p-3.5 cursor-pointer transition flex items-start space-x-3 ${isSelected ? 'bg-indigo-50/80 border-l-4 border-indigo-600' : 'hover:bg-white bg-slate-50/30'}">
+                        <div class="w-9 h-9 rounded-full ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'} font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                            ${escapeHtml(initials)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(t.visitor_name)}</h4>
+                                <span class="text-[10px] text-slate-400 font-mono ml-2 flex-shrink-0">${timeStr}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHtml(t.last_message || 'Started chat...')}</p>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-[10px] text-slate-400 truncate">${escapeHtml(t.visitor_email)}</span>
+                                ${unread > 0 ? `<span class="px-1.5 py-0.2 bg-red-500 text-white text-[9px] font-bold rounded-full">${unread} new</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterChatThreads() {
+            const query = (document.getElementById('chat-search-input').value || '').toLowerCase().trim();
+            if (!query) {
+                renderChatThreads(allChatThreads);
+                return;
+            }
+            const filtered = allChatThreads.filter(t => 
+                (t.visitor_name && t.visitor_name.toLowerCase().includes(query)) ||
+                (t.visitor_email && t.visitor_email.toLowerCase().includes(query)) ||
+                (t.last_message && t.last_message.toLowerCase().includes(query))
+            );
+            renderChatThreads(filtered);
+        }
+
+        async function openChatThread(threadId) {
+            selectedThreadId = threadId;
+            document.getElementById('chat-empty-state').classList.add('hidden');
+            document.getElementById('chat-active-screen').classList.remove('hidden');
+
+            renderChatThreads(allChatThreads); // highlight active item
+            await fetchActiveThreadMessages(true);
+            document.getElementById('active-chat-input').focus();
+        }
+
+        async function fetchActiveThreadMessages(autoScroll = false) {
+            if (!selectedThreadId) return;
+
+            try {
+                const res = await Auth.fetchWithAuth(`/api/chat/admin/threads/${selectedThreadId}/messages`);
+                const data = await res.json();
+
+                if (!res.ok || !data.success) return;
+
+                const thread = data.thread;
+                const messages = data.messages;
+
+                // Update Header
+                document.getElementById('active-chat-name').textContent = thread.visitor_name;
+                document.getElementById('active-chat-email').textContent = thread.visitor_email;
+                const initials = (thread.visitor_name || 'ST').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('active-chat-avatar').textContent = initials;
+                document.getElementById('active-chat-mailto').href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(thread.visitor_email)}&su=${encodeURIComponent('Re: CV Portal Live Chat')}`;
+
+                // Update unread count locally in allChatThreads
+                const tItem = allChatThreads.find(t => t.id === selectedThreadId);
+                if (tItem) tItem.unread_admin_count = 0;
+
+                // Render Messages
+                const stage = document.getElementById('active-chat-messages');
+                stage.innerHTML = messages.map(m => {
+                    const isAdmin = (m.sender_type === 'admin');
+                    const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+                    if (isAdmin) {
+                        return `
+                            <div class="flex items-end justify-end space-x-2">
+                                <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-sm shadow-xs max-w-[80%]">
+                                    <div class="text-[10px] text-indigo-200 font-bold mb-0.5">Muhammad Adil (You)</div>
+                                    <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(m.message)}</p>
+                                    <span class="block text-[9px] text-indigo-200 text-right mt-1">${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="flex items-start space-x-2">
+                                <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">
+                                    ${escapeHtml(initials)}
+                                </div>
+                                <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-xs max-w-[80%]">
+                                    <div class="text-[10px] text-slate-400 font-bold mb-0.5">${escapeHtml(m.sender_name)}</div>
+                                    <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(m.message)}</p>
+                                    <span class="block text-[9px] text-slate-400 mt-1">${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+
+                if (autoScroll) {
+                    stage.scrollTop = stage.scrollHeight;
+                }
+            } catch (err) {
+                console.error('Fetch active messages error:', err);
+            }
+        }
+
+        // Handle Admin Reply Submission
+        document.getElementById('active-chat-reply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedThreadId) return;
+
+            const input = document.getElementById('active-chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const sendBtn = document.getElementById('active-chat-send-btn');
+            sendBtn.disabled = true;
+
+            try {
+                const res = await Auth.fetchWithAuth('/api/chat/admin/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        thread_id: selectedThreadId,
+                        message: msg
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    input.value = '';
+                    await fetchActiveThreadMessages(true);
+                    fetchChatThreads(); // refresh order & preview
+                } else {
+                    alert(data.error || 'Failed to send reply.');
+                }
+            } catch (err) {
+                console.error('Admin reply error:', err);
+                alert('Network error while sending reply.');
+            } finally {
+                sendBtn.disabled = false;
+            }
+        });
+
         // Initialize on load
         fetchStats();
         fetchStudents();
         fetchFeedback();
+        fetchChatThreads();
+
+        // Background polling for admin chat (every 4 seconds)
+        setInterval(() => {
+            fetchChatThreads();
+        }, 4000);
     </script>
 </body>
 </html>

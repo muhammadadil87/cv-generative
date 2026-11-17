@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const { router: cvRoutes } = require('./routes/cv');
 const adminRoutes = require('./routes/admin');
 const feedbackRoutes = require('./routes/feedback');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -63,6 +64,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cv', cvRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Fallback to home / 404
 app.use((req, res) => {
