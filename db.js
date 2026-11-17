@@ -159,6 +159,19 @@ function initDatabase() {
         );
     `);
 
+    // 10. Student & Visitor Feedback Table
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            subject TEXT,
+            message TEXT NOT NULL,
+            status TEXT DEFAULT 'unread',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
+
     // Ensure Initial Admin Account exists
     seedAdmin();
 }

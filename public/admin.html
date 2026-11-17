@@ -139,6 +139,42 @@
                 </table>
             </div>
         </div>
+
+        <!-- Student Feedback & Inquiries Card -->
+        <div class="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-comment-dots text-indigo-600"></i>
+                        <span>Student Feedback & Support Inquiries</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Direct messages submitted by students from the homepage</p>
+                </div>
+                <button onclick="fetchFeedback()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                            <th class="py-3.5 px-6">Date</th>
+                            <th class="py-3.5 px-6">Student Name</th>
+                            <th class="py-3.5 px-6">Email</th>
+                            <th class="py-3.5 px-6">Subject</th>
+                            <th class="py-3.5 px-6">Message</th>
+                            <th class="py-3.5 px-6 text-right">Reply</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-table-body" class="divide-y divide-slate-100 text-slate-700">
+                        <tr>
+                            <td colspan="6" class="py-6 text-center text-slate-400">Loading inquiries...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <!-- Admin CV View & PDF Modal (Full-Screen Document Desk - Strictly Centered) -->
@@ -645,6 +681,60 @@
             return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        // Fetch and display student feedback messages
+        async function fetchFeedback() {
+            const tbody = document.getElementById('feedback-table-body');
+            if (!tbody) return;
+
+            try {
+                const res = await Auth.fetchWithAuth('/api/feedback');
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500">Failed to load feedback.</td></tr>';
+                    return;
+                }
+
+                if (!data.feedback || data.feedback.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">No student feedback messages yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.feedback.map(item => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-6 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                            ${escapeHtml(item.created_at || '')}
+                        </td>
+                        <td class="py-3 px-6 font-bold text-slate-800">
+                            ${escapeHtml(item.name)}
+                        </td>
+                        <td class="py-3 px-6 text-slate-600">
+                            <a href="mailto:${escapeHtml(item.email)}" class="text-indigo-600 hover:underline font-mono">
+                                ${escapeHtml(item.email)}
+                            </a>
+                        </td>
+                        <td class="py-3 px-6 text-slate-700 font-medium max-w-xs truncate">
+                            ${escapeHtml(item.subject || 'General Feedback')}
+                        </td>
+                        <td class="py-3 px-6 text-slate-600 max-w-md">
+                            ${escapeHtml(item.message)}
+                        </td>
+                        <td class="py-3 px-6 text-right whitespace-nowrap">
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(item.email)}&su=${encodeURIComponent('Re: ' + (item.subject || 'CV Builder Feedback'))}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-lg transition inline-flex items-center gap-1">
+                                <i class="fa-solid fa-reply text-[10px]"></i>
+                                <span>Reply</span>
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Fetch feedback error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500">Error loading feedback messages.</td></tr>';
+            }
+        }
+
         // Live filters
         document.getElementById('search-input').addEventListener('input', () => fetchStudents());
         document.getElementById('status-filter').addEventListener('change', () => fetchStudents());
@@ -652,6 +742,7 @@
         // Initialize on load
         fetchStats();
         fetchStudents();
+        fetchFeedback();
     </script>
 </body>
 </html>

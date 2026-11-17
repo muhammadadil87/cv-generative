@@ -1,142 +1,905 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student CV Builder & Admin Portal</title>
+    <title>Student CV Builder & Career Portal | University of Education</title>
+    <meta name="description" content="Official University Standard CV Builder platform for students and alumni. Created by Muhammad Adil, MBA Supply Chain Management, Manager and Visiting Lecturer.">
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            bottom: 24px;
+            left: 20px;
+            width: 3px;
+            background: linear-gradient(180deg, #4f46e5 0%, #818cf8 100%);
+            border-radius: 9999px;
+        }
+        @media (min-width: 768px) {
+            .timeline-line-center::before {
+                content: '';
+                position: absolute;
+                top: 30px;
+                bottom: 30px;
+                left: 50%;
+                width: 3px;
+                transform: translateX(-50%);
+                background: linear-gradient(180deg, #4f46e5 0%, #818cf8 50%, #c7d2fe 100%);
+                border-radius: 9999px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
     <!-- Navigation Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xl font-bold shadow-md">
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 shadow-sm transition duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-11 h-11 bg-gradient-to-tr from-indigo-700 via-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md shadow-indigo-200 group-hover:scale-105 transition transform">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <div>
-                    <span class="text-xl font-bold text-slate-900 tracking-tight">University Portal</span>
+                    <span class="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                        University Portal
+                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200/60 rounded-full">Official</span>
+                    </span>
                     <span class="text-xs text-indigo-600 font-semibold block uppercase tracking-wider">Student CV Builder</span>
                 </div>
+            </a>
+
+            <!-- Desktop Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
+                <a href="#hero" class="hover:text-indigo-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-house text-xs text-slate-400"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/dashboard.html" class="hover:text-indigo-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-pen text-xs text-slate-400"></i>
+                    <span>Create CV</span>
+                </a>
+                <a href="#about-creator" class="hover:text-indigo-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-tie text-xs text-slate-400"></i>
+                    <span>About the Creator</span>
+                </a>
+                <a href="#contact-support" class="hover:text-indigo-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-headset text-xs text-slate-400"></i>
+                    <span>Contact</span>
+                </a>
+            </nav>
+
+            <!-- Auth Action Buttons -->
+            <div id="nav-actions" class="hidden md:flex items-center space-x-3">
+                <a href="/login.html" class="text-slate-700 hover:text-indigo-600 font-semibold px-4 py-2 text-sm transition">Log In</a>
+                <a href="/register.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-sm hover:shadow-md transition">Register Free</a>
             </div>
-            <div id="nav-actions" class="flex items-center space-x-3">
-                <a href="/login.html" class="text-slate-600 hover:text-indigo-600 font-medium px-4 py-2 text-sm transition">Log In</a>
-                <a href="/register.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm transition">Register</a>
+
+            <!-- Mobile Hamburger Button -->
+            <button id="mobile-menu-btn" type="button" class="md:hidden text-slate-700 hover:text-indigo-600 p-2 focus:outline-none" aria-label="Toggle Menu">
+                <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-5 space-y-3">
+            <a href="#hero" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">Home</a>
+            <a href="/dashboard.html" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">Create CV</a>
+            <a href="#about-creator" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">About the Creator</a>
+            <a href="#contact-support" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">Contact & Support</a>
+            <div id="mobile-nav-actions" class="pt-3 border-t border-slate-100 flex flex-col gap-2">
+                <a href="/login.html" class="w-full text-center py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700">Log In</a>
+                <a href="/register.html" class="w-full text-center py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-sm">Register Free</a>
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <main class="flex-grow flex items-center">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
-                    <i class="fa-solid fa-award"></i>
-                    <span>Official Format & Career Ready</span>
+    <section id="hero" class="relative overflow-hidden bg-gradient-to-b from-white via-indigo-50/20 to-slate-50 border-b border-slate-200/60 py-16 md:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <div class="lg:col-span-7 space-y-6">
+                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200/70 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>University Standard • Career Ready</span>
                 </div>
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">
-                    Build your official CV with <span class="text-indigo-600">precision & confidence</span>.
+
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
+                    Build your official CV with <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">precision & confidence</span>.
                 </h1>
-                <p class="mt-4 text-lg text-slate-600 leading-relaxed">
-                    Designed specifically for students and alumni. Easily enter your education, experience, language proficiencies, and digital skills according to the standard university template.
+
+                <p class="text-lg text-slate-600 leading-relaxed max-w-2xl font-normal">
+                    Designed specifically for university students and fresh graduates. Easily enter your qualifications, professional experience, beginner-friendly language proficiencies, and digital skills according to the standard university template.
                 </p>
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="/register.html" class="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg text-base shadow-md hover:shadow-lg transition">
-                        <span>Get Started — Free</span>
-                        <i class="fa-solid fa-arrow-right"></i>
+
+                <div class="pt-2 flex flex-wrap gap-4 items-center">
+                    <a href="/dashboard.html" class="inline-flex items-center space-x-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-7 py-3.5 rounded-xl text-base shadow-md hover:shadow-lg shadow-indigo-200 hover:-translate-y-0.5 transition transform">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <span>Create Your CV — Free</span>
                     </a>
-                    <a href="/login.html" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold px-6 py-3 rounded-lg text-base shadow-sm transition">
-                        <i class="fa-solid fa-user-lock"></i>
-                        <span>Student & Admin Login</span>
+                    <a href="#about-creator" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold px-6 py-3.5 rounded-xl text-base shadow-sm hover:border-indigo-300 transition">
+                        <i class="fa-solid fa-user-tie text-indigo-600"></i>
+                        <span>About the Creator</span>
                     </a>
                 </div>
 
-                <!-- Features list -->
-                <div class="mt-10 grid grid-cols-2 gap-4 text-sm text-slate-600">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
-                        <span>Zero empty placeholders</span>
+                <!-- Verified Features Badges -->
+                <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold text-slate-600">
+                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                        <span>Europass Standard</span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
-                        <span>One-click PDF download</span>
+                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                        <span>Passport Photo Crop</span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
-                        <span>Standard Europass language grid</span>
+                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                        <span>1-Click PDF Export</span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
-                        <span>Live refreshable preview</span>
+                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                        <span>100% Free for Students</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Preview Card / Graphic -->
-            <div class="relative">
-                <div class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-6 transform hover:-translate-y-1 transition duration-300">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-600">
-                                <i class="fa-solid fa-user"></i>
+            <!-- Hero CV Preview Card -->
+            <div class="lg:col-span-5 relative">
+                <div class="relative mx-auto max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform hover:-translate-y-1.5 transition duration-300">
+                    <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 p-5 text-white">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xl">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Executive A4 CV Format</h3>
+                                    <p class="text-xs text-indigo-100">Standard University & Europass Layout</p>
+                                </div>
                             </div>
+                            <span class="px-2.5 py-1 bg-emerald-400 text-slate-900 text-[11px] font-extrabold rounded-full uppercase tracking-wider">A4 Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">1</div>
                             <div>
-                                <h4 class="font-bold text-slate-800 text-sm">Professional CV Structure</h4>
-                                <p class="text-xs text-slate-500">Standard University Format</p>
+                                <h5 class="text-xs font-bold text-slate-800">Passport Photo Studio</h5>
+                                <p class="text-[11px] text-slate-500">Auto 35mm × 45mm 300 DPI crop with interactive zoom & pan</p>
                             </div>
                         </div>
-                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">Verified</span>
-                    </div>
 
-                    <div class="mt-4 space-y-3">
-                        <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
-                            <span class="font-semibold text-slate-700 block">Personal Information & Summary</span>
-                            <span class="text-slate-500">Contact details, address, LinkedIn, and About Me</span>
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">2</div>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">Beginner-Friendly Language Grid</h5>
+                                <p class="text-[11px] text-slate-500">Listening, Reading, Speaking & Writing with easy dropdowns</p>
+                            </div>
                         </div>
-                        <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
-                            <span class="font-semibold text-slate-700 block">Education & Work Experience</span>
-                            <span class="text-slate-500">Qualifications, grades, institutions, and achievements</span>
-                        </div>
-                        <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
-                            <span class="font-semibold text-slate-700 block">Languages & Digital Skills</span>
-                            <span class="text-slate-500">CEFR table (Listening, Reading, Speaking, Writing)</span>
-                        </div>
-                    </div>
 
-                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-xs text-slate-500">Ready to build yours?</span>
-                        <a href="/register.html" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1">
-                            <span>Create account</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">3</div>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">Optional References Section</h5>
+                                <p class="text-[11px] text-slate-500">Easily add faculty references with designation, phone & email</p>
+                            </div>
+                        </div>
+
+                        <a href="/dashboard.html" class="block w-full text-center py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-sm transition">
+                            Start Building Now <i class="fa-solid fa-arrow-right ml-1.5 text-xs"></i>
                         </a>
                     </div>
                 </div>
             </div>
+
         </div>
-    </main>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 1 & 6: MEET THE CREATOR & ABOUT THE DEVELOPER    -->
+    <!-- ======================================================== -->
+    <section id="about-creator" class="py-20 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Section Header -->
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>Meet the Creator & Visionary</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Dedicated to Empowering University Students
+                </h2>
+                <p class="mt-3 text-base text-slate-600 leading-relaxed">
+                    Learn more about the academic and professional background of the creator behind this University CV Builder platform.
+                </p>
+            </div>
+
+            <!-- Creator Bio Main Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Creator Portrait Card (Section 6: Profile Picture) -->
+                <div class="lg:col-span-5 flex flex-col items-center">
+                    <div class="relative group">
+                        <!-- Decorative Backdrop Ring -->
+                        <div class="absolute -inset-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl blur-md opacity-30 group-hover:opacity-50 transition duration-300"></div>
+                        
+                        <!-- Portrait Image Box -->
+                        <div class="relative bg-white p-3 rounded-3xl shadow-xl border border-slate-200/80">
+                            <img src="/images/creator-profile.jpg" alt="Muhammad Adil - MBA Supply Chain, Manager & Visiting Lecturer" 
+                                class="w-72 h-88 sm:w-80 sm:h-96 object-cover object-top rounded-2xl shadow-inner border border-slate-100">
+                            
+                            <!-- Verified Badge Overlay -->
+                            <div class="absolute bottom-6 right-6 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-indigo-100 shadow-md flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-xs font-bold text-slate-800">Verified Educator</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Hometown Pills -->
+                    <div class="mt-6 flex flex-wrap justify-center gap-2 max-w-sm text-center">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-medium border border-slate-200">
+                            <i class="fa-solid fa-location-dot text-indigo-600"></i>
+                            <span>Bahawalpur, Punjab, Pakistan</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-medium border border-slate-200">
+                            <i class="fa-solid fa-house-chimney text-indigo-600"></i>
+                            <span>Hometown: Tehsil Hasilpur, Bahawalpur</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Creator Details & Bio -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div>
+                        <div class="flex items-center gap-2 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span>Project Creator & Lead Developer</span>
+                        </div>
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                            Muhammad Adil
+                        </h3>
+                        <p class="text-sm font-semibold text-slate-500 mt-1">
+                            MBA (Supply Chain Management) • Manager & Visiting Lecturer
+                        </p>
+                    </div>
+
+                    <!-- Bio Intro Paragraphs -->
+                    <div class="space-y-4 text-slate-700 text-base leading-relaxed">
+                        <p>
+                            <strong class="text-slate-900 font-bold">Muhammad Adil</strong> is an MBA-qualified business professional specializing in <strong>Supply Chain Management</strong>. He has a strong academic background in Finance and practical experience in business management, operations, and university-level teaching.
+                        </p>
+                        <p>
+                            He is currently working as a <strong>Manager at Saeed Mechanical Works</strong>, where he is actively involved in business operations, production scheduling, ERP implementation, and management activities.
+                        </p>
+                        <p>
+                            Alongside his professional corporate career, he is also serving as a <strong>Visiting Lecturer at the University of Education Lahore, Faisalabad Campus</strong>, teaching <em>Marketing Research</em> to undergraduate students.
+                        </p>
+                        <p class="text-slate-600 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/80">
+                            <i class="fa-solid fa-heart text-indigo-600 mr-1.5"></i>
+                            He is deeply passionate about quality higher education, professional student development, and helping university students navigate their early career journeys.
+                        </p>
+                    </div>
+
+                    <!-- Quick Highlights Badges -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 block font-medium">Corporate Role</span>
+                                <span class="text-sm font-bold text-slate-800">Manager @ Saeed Mech. Works</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="w-10 h-10 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 block font-medium">Academic Role</span>
+                                <span class="text-sm font-bold text-slate-800">Visiting Lecturer @ UE Lahore</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 4: WHY I CREATED THIS CV BUILDER (VISION)        -->
+    <!-- ======================================================== -->
+    <section class="py-16 bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 text-white relative overflow-hidden">
+        <!-- Background Accents -->
+        <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-20 -top-20 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-8">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/10 backdrop-blur-md rounded-full text-indigo-200 text-xs font-bold uppercase tracking-wider border border-white/10">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Purpose & Inspiration</span>
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-3 tracking-tight text-white">
+                    My Vision – Helping Students Build Their Future
+                </h2>
+            </div>
+
+            <!-- Vision Statement Card -->
+            <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-3xl p-8 sm:p-10 shadow-2xl relative">
+                <i class="fa-solid fa-quote-left text-4xl sm:text-5xl text-indigo-300/30 absolute top-6 left-6 -z-0"></i>
+                
+                <div class="relative z-10 space-y-4 text-base sm:text-lg leading-relaxed text-indigo-50/95 font-normal">
+                    <p>
+                        "I created this CV Builder platform to help university students and fresh graduates prepare professional, university-standard CVs without unnecessary difficulties.
+                    </p>
+                    <p>
+                        Many students struggle with CV formatting, professional language, education details, skills, and work experience sections. My goal is to provide them with a simple, accessible, and user-friendly platform where they can create their CVs with confidence.
+                    </p>
+                    <p>
+                        As an educator and business professional, I understand the importance of presenting academic qualifications and professional skills effectively.
+                    </p>
+                    <p class="font-semibold text-white pt-2 border-t border-white/15">
+                        This platform is my effort to make career preparation easier for students."
+                    </p>
+                </div>
+
+                <div class="mt-6 pt-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <img src="/images/creator-profile.jpg" alt="Muhammad Adil" class="w-12 h-12 rounded-full object-cover border-2 border-white/60">
+                        <div>
+                            <span class="font-bold text-white text-sm block">Muhammad Adil</span>
+                            <span class="text-xs text-indigo-200">MBA Supply Chain | Manager & Visiting Lecturer</span>
+                        </div>
+                    </div>
+                    <a href="/dashboard.html" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-700 hover:bg-indigo-50 font-bold rounded-xl text-xs shadow-md transition">
+                        <span>Build Your CV Now</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 2: ACADEMIC BACKGROUND (VERTICAL TIMELINE)       -->
+    <!-- ======================================================== -->
+    <section class="py-20 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Qualifications</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Academic Background & Education
+                </h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    A strong academic foundation spanning Business Administration, Supply Chain Management, and Finance.
+                </p>
+            </div>
+
+            <!-- Vertical Timeline Structure -->
+            <div class="relative timeline-line space-y-8 pl-12 sm:pl-16">
+                
+                <!-- 1. MBA -->
+                <div class="relative bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <!-- Marker Circle -->
+                    <div class="absolute -left-[48px] sm:-left-[58px] top-6 w-9 h-9 rounded-full bg-indigo-600 border-4 border-white shadow-md flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100">
+                            2024 – 2026
+                        </span>
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200">
+                            CGPA: 3.61 / 4.00
+                        </span>
+                    </div>
+
+                    <h4 class="text-xl font-bold text-slate-900">
+                        MBA – Supply Chain Management
+                    </h4>
+                    <p class="text-sm font-semibold text-indigo-600 mt-1">
+                        <i class="fa-solid fa-building-columns mr-1.5"></i>
+                        University of Education Lahore, Faisalabad Campus
+                    </p>
+                    <p class="text-xs text-slate-500 mt-2">
+                        Specialization focused on Advanced Supply Chain Management, Logistics Optimization, ERP Systems, Procurement Strategies, and Operations Excellence.
+                    </p>
+                </div>
+
+                <!-- 2. BBA (Hons.) -->
+                <div class="relative bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <!-- Marker Circle -->
+                    <div class="absolute -left-[48px] sm:-left-[58px] top-6 w-9 h-9 rounded-full bg-indigo-500 border-4 border-white shadow-md flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100">
+                            2020 – 2024
+                        </span>
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200">
+                            CGPA: 3.04 / 4.00
+                        </span>
+                    </div>
+
+                    <h4 class="text-xl font-bold text-slate-900">
+                        BBA (Hons.) – Finance
+                    </h4>
+                    <p class="text-sm font-semibold text-indigo-600 mt-1">
+                        <i class="fa-solid fa-building-columns mr-1.5"></i>
+                        University of Education Lahore, Faisalabad Campus
+                    </p>
+                    <p class="text-xs text-slate-500 mt-2">
+                        Comprehensive four-year business degree covering Financial Management, Corporate Finance, Business Economics, Accounting, and Business Administration.
+                    </p>
+                </div>
+
+                <!-- 3. Intermediate -->
+                <div class="relative bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <!-- Marker Circle -->
+                    <div class="absolute -left-[48px] sm:-left-[58px] top-6 w-9 h-9 rounded-full bg-slate-400 border-4 border-white shadow-md flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
+                            2019 – 2020
+                        </span>
+                    </div>
+
+                    <h4 class="text-lg font-bold text-slate-900">
+                        Intermediate – ICS (Computer Science)
+                    </h4>
+                    <p class="text-sm font-medium text-slate-600 mt-1">
+                        <i class="fa-solid fa-school mr-1.5 text-slate-400"></i>
+                        National College of Commerce, Bahawalpur
+                    </p>
+                </div>
+
+                <!-- 4. Matriculation -->
+                <div class="relative bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <!-- Marker Circle -->
+                    <div class="absolute -left-[48px] sm:-left-[58px] top-6 w-9 h-9 rounded-full bg-slate-300 border-4 border-white shadow-md flex items-center justify-center text-slate-600 text-xs">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+
+                    <h4 class="text-lg font-bold text-slate-900">
+                        Matriculation – Science
+                    </h4>
+                    <p class="text-sm font-medium text-slate-600 mt-1">
+                        <i class="fa-solid fa-school mr-1.5 text-slate-400"></i>
+                        Government Boys High School, Hasilpur
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 3: PROFESSIONAL EXPERIENCE (TWO DISTINCT CARDS)  -->
+    <!-- ======================================================== -->
+    <section class="py-20 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Practical Expertise</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Professional Experience
+                </h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Dual leadership experience across corporate industrial management and higher education instruction.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Experience 1: Manager @ Saeed Mechanical Works -->
+                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-lg transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-6 border-b border-slate-200/80">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-indigo-200">
+                                    <i class="fa-solid fa-gears"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-slate-900">Manager</h4>
+                                    <p class="text-sm font-semibold text-indigo-600">Saeed Mechanical Works</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-full">Industrial</span>
+                        </div>
+
+                        <div class="mt-6">
+                            <h5 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Key Responsibilities:</h5>
+                            <ul class="space-y-2.5 text-sm text-slate-700">
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>Business and operational management.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>ERP system management and implementation.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>Inventory and store management.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>Production planning and coordination.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>Procurement and supplier management.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>Supplier payment scheduling.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-indigo-600 mt-1 text-xs"></i>
+                                    <span>Business administration and reporting.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-slate-200/80 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Management & Supply Chain</span>
+                        <span class="font-semibold text-slate-700">Full-Time Managerial</span>
+                    </div>
+                </div>
+
+                <!-- Experience 2: Visiting Lecturer @ University of Education -->
+                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-violet-300 shadow-sm hover:shadow-lg transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-6 border-b border-slate-200/80">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-14 h-14 rounded-2xl bg-violet-600 text-white flex items-center justify-center text-2xl shadow-md shadow-violet-200">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-slate-900">Visiting Lecturer</h4>
+                                    <p class="text-sm font-semibold text-violet-600">University of Education Lahore</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-violet-100 text-violet-800 text-xs font-bold rounded-full">Fsd Campus</span>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
+                            <i class="fa-solid fa-book-bookmark text-violet-600"></i>
+                            <span>Teaching Area: <strong class="text-slate-900 font-bold">Marketing Research</strong></span>
+                        </div>
+
+                        <div class="mt-6">
+                            <h5 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Key Responsibilities:</h5>
+                            <ul class="space-y-2.5 text-sm text-slate-700">
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-violet-600 mt-1 text-xs"></i>
+                                    <span>Teaching Marketing Research to university students.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-violet-600 mt-1 text-xs"></i>
+                                    <span>Explaining complex marketing research concepts clearly.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-violet-600 mt-1 text-xs"></i>
+                                    <span>Guiding students in practical research activities.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-violet-600 mt-1 text-xs"></i>
+                                    <span>Helping students understand academic concepts effectively.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-violet-600 mt-1 text-xs"></i>
+                                    <span>Supporting students in their long-term academic development.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-slate-200/80 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Higher Education Instruction</span>
+                        <span class="font-semibold text-slate-700">University Faculty</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 5: STUDENT SUPPORT & CONTACT                     -->
+    <!-- ======================================================== -->
+    <section id="contact-support" class="py-20 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+                
+                <!-- Left Column: Details & Direct Buttons -->
+                <div class="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-between">
+                    <div>
+                        <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+                            <i class="fa-solid fa-headset"></i>
+                            <span>Student Support & Mentorship</span>
+                        </div>
+
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                            Need Help? I'm Here to Support You!
+                        </h2>
+
+                        <p class="mt-4 text-base text-slate-600 leading-relaxed">
+                            If you face any difficulty while creating your CV, have questions about the CV format, or need guidance regarding your professional profile, feel free to contact me.
+                        </p>
+
+                        <!-- Email Display Box -->
+                        <div class="mt-6 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 block font-medium">Direct Email Contact:</span>
+                                <a href="mailto:muhammadadil5387@gmail.com" class="text-sm sm:text-base font-bold text-indigo-700 hover:underline">
+                                    muhammadadil5387@gmail.com
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 3 Functional Action Buttons -->
+                        <div class="mt-8 space-y-3">
+                            <!-- Button 1: Contact Me (Gmail Compose) -->
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=muhammadadil5387@gmail.com" target="_blank" rel="noopener noreferrer"
+                                class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition">
+                                <i class="fa-brands fa-google"></i>
+                                <span>Contact Me (Open in Gmail)</span>
+                            </a>
+
+                            <!-- Button 2: Get CV Assistance (Predefined Subject) -->
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=muhammadadil5387@gmail.com&su=CV%20Builder%20Assistance" target="_blank" rel="noopener noreferrer"
+                                class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition">
+                                <i class="fa-solid fa-circle-question"></i>
+                                <span>Get CV Assistance</span>
+                            </a>
+
+                            <!-- Button 3: Send Feedback Trigger -->
+                            <button type="button" onclick="document.getElementById('feedback-name').focus();"
+                                class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-white hover:bg-slate-50 text-indigo-700 border-2 border-indigo-200 hover:border-indigo-400 font-bold rounded-xl text-sm transition">
+                                <i class="fa-solid fa-comment-dots text-indigo-600"></i>
+                                <span>Send Feedback / Suggestion</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-slate-100 text-xs text-slate-400">
+                        Response time: Typically within 24 to 48 hours for university students.
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Real Backend Feedback Form -->
+                <div class="lg:col-span-6 bg-slate-50/70 p-8 sm:p-12 border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col justify-center">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                            <h3 class="text-xl font-bold text-slate-900">Student Feedback & Suggestion Box</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-6">
+                            Your feedback is saved directly to our system database to continuously improve the CV builder experience.
+                        </p>
+
+                        <form id="feedback-form" class="space-y-4">
+                            <div id="feedback-alert" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
+
+                            <div>
+                                <label for="feedback-name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Your Full Name *</label>
+                                <input type="text" id="feedback-name" required placeholder="e.g. Ali Ahmed"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                            </div>
+
+                            <div>
+                                <label for="feedback-email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Your Email Address *</label>
+                                <input type="email" id="feedback-email" required placeholder="e.g. ali@university.edu"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                            </div>
+
+                            <div>
+                                <label for="feedback-subject" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Subject / Topic (Optional)</label>
+                                <input type="text" id="feedback-subject" placeholder="e.g. CV Template Idea, Bug report, Appreciation"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                            </div>
+
+                            <div>
+                                <label for="feedback-message" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Your Message / Feedback *</label>
+                                <textarea id="feedback-message" rows="4" required placeholder="Write your questions, ideas, or feedback here..."
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"></textarea>
+                            </div>
+
+                            <button type="submit" id="feedback-submit-btn"
+                                class="w-full py-3.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition flex items-center justify-center gap-2">
+                                <span id="feedback-btn-text">Submit Feedback</span>
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <p>&copy; 2026 Student CV Builder & Admin Portal. All rights reserved.</p>
+    <footer class="bg-slate-900 text-slate-300 py-12 text-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-slate-800">
+            
+            <div class="md:col-span-2 space-y-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-lg font-bold">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <span class="text-lg font-bold text-white tracking-tight">University CV Builder Portal</span>
+                </div>
+                <p class="text-xs text-slate-400 max-w-md leading-relaxed">
+                    Designed and maintained to provide university students and alumni with a clean, executive, Europass-standard curriculum vitae generation platform.
+                </p>
+                <div class="pt-2 text-xs text-slate-400">
+                    <span>Creator: <strong class="text-white">Muhammad Adil</strong> (MBA, Manager & Visiting Lecturer)</span>
+                </div>
+            </div>
+
+            <div>
+                <h5 class="text-white font-bold text-xs uppercase tracking-wider mb-3">Quick Navigation</h5>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#hero" class="hover:text-white transition">Home</a></li>
+                    <li><a href="/dashboard.html" class="hover:text-white transition">Create CV</a></li>
+                    <li><a href="#about-creator" class="hover:text-white transition">About the Creator</a></li>
+                    <li><a href="#contact-support" class="hover:text-white transition">Contact & Support</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h5 class="text-white font-bold text-xs uppercase tracking-wider mb-3">Portal Access</h5>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="/login.html" class="hover:text-white transition">Student Login</a></li>
+                    <li><a href="/register.html" class="hover:text-white transition">Student Registration</a></li>
+                    <li><a href="/login.html" class="hover:text-white transition">Admin Portal</a></li>
+                    <li><a href="mailto:muhammadadil5387@gmail.com" class="hover:text-white transition">Support Email</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <p>&copy; 2026 University Student CV Builder. All rights reserved.</p>
+            <p>Developed with dedication for student career development by <strong class="text-slate-300">Muhammad Adil</strong>.</p>
+        </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="/js/auth.js"></script>
     <script>
-        // Check if user is already logged in
+        // Check if user is already logged in and update navs
         const user = Auth.getUser();
         if (user && Auth.getToken()) {
             const nav = document.getElementById('nav-actions');
-            if (user.role === 'admin') {
+            const mobileNav = document.getElementById('mobile-nav-actions');
+            const targetUrl = user.role === 'admin' ? '/admin.html' : '/dashboard.html';
+            const targetText = user.role === 'admin' ? 'Admin Portal' : 'My CV Dashboard';
+            
+            if (nav) {
                 nav.innerHTML = `
-                    <a href="/admin.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm">Admin Dashboard</a>
+                    <a href="${targetUrl}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-sm transition">
+                        ${targetText}
+                    </a>
                 `;
+            }
+            if (mobileNav) {
+                mobileNav.innerHTML = `
+                    <a href="${targetUrl}" class="w-full text-center py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-sm">
+                        ${targetText}
+                    </a>
+                `;
+            }
+        }
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Functional Real Backend Feedback Submission
+        const feedbackForm = document.getElementById('feedback-form');
+        const feedbackAlert = document.getElementById('feedback-alert');
+        const submitBtn = document.getElementById('feedback-submit-btn');
+        const btnText = document.getElementById('feedback-btn-text');
+
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const name = document.getElementById('feedback-name').value.trim();
+                const email = document.getElementById('feedback-email').value.trim();
+                const subject = document.getElementById('feedback-subject').value.trim();
+                const message = document.getElementById('feedback-message').value.trim();
+
+                if (!name || !email || !message) {
+                    showAlert('Please fill in your Name, Email, and Message.', 'error');
+                    return;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                btnText.textContent = 'Saving Feedback...';
+                feedbackAlert.classList.add('hidden');
+
+                try {
+                    const response = await fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, subject, message })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showAlert(data.message || 'Thank you! Your feedback has been successfully submitted and saved.', 'success');
+                        feedbackForm.reset();
+                    } else {
+                        showAlert(data.error || 'Failed to submit feedback. Please check your information.', 'error');
+                    }
+                } catch (err) {
+                    console.error('Feedback submission error:', err);
+                    showAlert('Network error. Please try again or email directly at muhammadadil5387@gmail.com.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Submit Feedback';
+                }
+            });
+        }
+
+        function showAlert(msg, type) {
+            if (!feedbackAlert) return;
+            feedbackAlert.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-red-50', 'text-red-700', 'border-red-200');
+            
+            if (type === 'success') {
+                feedbackAlert.className = 'p-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-2';
+                feedbackAlert.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> <span>' + msg + '</span>';
             } else {
-                nav.innerHTML = `
-                    <a href="/dashboard.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm">My Dashboard</a>
-                `;
+                feedbackAlert.className = 'p-4 rounded-xl text-xs font-semibold bg-red-50 text-red-800 border border-red-200 flex items-center gap-2';
+                feedbackAlert.innerHTML = '<i class="fa-solid fa-circle-exclamation text-red-600 text-sm"></i> <span>' + msg + '</span>';
             }
         }
     </script>
