@@ -185,15 +185,39 @@
         if (!finalName && inputName) finalName = inputName.value.trim();
         if (!finalEmail && inputEmail) finalEmail = inputEmail.value.trim();
 
+        // Auto-detect email typed in message
+        const emailInText = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (emailInText && emailInText[0]) {
+            finalEmail = emailInText[0].trim().toLowerCase();
+        }
+
+        // Auto-detect name if visitor said "my name is ..."
+        const nameMatch = text.match(/(?:my name is|i am|this is)\s+([a-zA-Z\s]{2,25})/i);
+        if (nameMatch && nameMatch[1]) {
+            finalName = nameMatch[1].trim();
+        }
+
+        // If user wants Admin assistance (Press 1 / Admin) but email is missing, ask for their original email!
+        const isCallingAdmin = (text === '1' || text.toLowerCase().includes('admin') || text.toLowerCase().includes('connect'));
+        if (isCallingAdmin && (!finalEmail || !finalEmail.includes('@') || finalEmail.includes('@student.portal'))) {
+            if (identityBox) identityBox.classList.remove('hidden');
+            const promptMail = prompt('Please enter your original Email (e.g. name@gmail.com) so Admin Muhammad Adil can reply to you directly:');
+            if (promptMail && promptMail.includes('@')) {
+                finalEmail = promptMail.trim().toLowerCase();
+            }
+        }
+
         if (!finalName) finalName = 'Student Visitor';
-        if (!finalEmail) finalEmail = 'visitor@student.portal';
+        if (!finalEmail || !finalEmail.includes('@')) finalEmail = 'visitor@student.portal';
 
         // Persist locally
         visitorName = finalName;
         visitorEmail = finalEmail;
         localStorage.setItem('cv_chat_user_name', visitorName);
         localStorage.setItem('cv_chat_user_email', visitorEmail);
-        if (identityBox) identityBox.classList.add('hidden');
+        if (identityBox && finalEmail.includes('@') && !finalEmail.includes('@student.portal')) {
+            identityBox.classList.add('hidden');
+        }
 
         // Optimistic UI Append
         chatInput.value = '';

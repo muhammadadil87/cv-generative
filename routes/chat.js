@@ -46,9 +46,10 @@ async function sendAdminNotification(studentName, studentEmail, messageText, ses
                 'Referer': 'https://cvgenerative.vercel.app/'
             },
             body: JSON.stringify({
-                _subject: `🚨 [Live Chat Alert] ${studentName} wants to talk with Admin Muhammad Adil!`,
+                _subject: `🚨 [Live Chat Alert] ${studentName} (${studentEmail}) wants to talk with Admin Muhammad Adil!`,
                 'Student Name': studentName,
-                'Student Email': studentEmail,
+                'Original Email': studentEmail,
+                _replyto: studentEmail,
                 'Latest Message': messageText,
                 'Session ID': sessionId,
                 'Action Required': 'Please log in to Admin Portal to reply: https://cvgenerative.vercel.app/admin.html'
