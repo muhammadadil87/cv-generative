@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — CV Builder Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Admin Login Gate (Appears smoothly if not signed in as admin, preventing any bounce or redirect loops) -->
+    <div id="admin-login-gate" class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 sm:p-8">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-indigo-200 mb-3.5">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Admin Console Access</h2>
+                <p class="text-xs text-slate-500 mt-1">Please enter your verified admin credentials to continue</p>
+            </div>
+
+            <div id="gate-error" class="hidden mb-4 p-3 rounded-xl bg-red-50 text-red-700 border border-red-200 text-xs font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation text-red-500 text-sm"></i>
+                <span id="gate-error-text">Invalid credentials.</span>
+            </div>
+
+            <form id="admin-gate-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Admin Username / Email
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-user-shield text-sm"></i>
+                        </span>
+                        <input type="text" id="gate-username" required autocomplete="username" placeholder="e.g. adil5387" value="adil5387"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Password
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </span>
+                        <input type="password" id="gate-password" required autocomplete="current-password" placeholder="••••••••"
+                            class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button type="button" id="gate-toggle-password" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-eye text-sm" id="gate-eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="gate-submit-btn"
+                    class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-indigo-200 transition flex items-center justify-center space-x-2">
+                    <span id="gate-btn-text">Unlock Admin Console</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+
+                <div class="pt-2 text-center">
+                    <a href="/" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                        <span>Return to Student Homepage</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Top Admin Header -->
+    <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-sm">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <span class="text-base font-bold tracking-tight block leading-tight">Admin Console</span>
+                    <span class="text-[11px] text-slate-400 font-medium">Student CV Management</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <span id="admin-info" class="text-xs text-slate-300 font-medium hidden sm:inline">Admin: Muhammad Adil (adil5387)</span>
+                <a href="#live-chat-section" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Live Chats</span>
+                </a>
+                <button onclick="Auth.logout()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white transition flex items-center space-x-1.5 border border-slate-700">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Top Overview Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Students</span>
+                    <h3 id="stat-total-students" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Accounts</span>
+                    <h3 id="stat-active-students" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">CVs Completed</span>
+                    <h3 id="stat-completed-cvs" class="text-3xl font-extrabold text-indigo-600 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">CVs in Draft</span>
+                    <h3 id="stat-draft-cvs" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-file-pen"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Directory Table Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Header Controls -->
+            <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Student Directory</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Manage accounts, view full CVs, and export records</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="search-input" placeholder="Search name, email, ID..."
+                            class="w-full pl-9 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <!-- Filter Status -->
+                    <select id="status-filter" class="px-3 py-2 bg-slate-50 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 focus:outline-none">
+                        <option value="all">All Accounts</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
+
+                    <!-- Export CSV Button -->
+                    <a href="/api/admin/export/csv" id="btn-export-csv" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Export CSV</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                            <th class="py-3 px-4">Student</th>
+                            <th class="py-3 px-4">ID / Reg No.</th>
+                            <th class="py-3 px-4">Login Password</th>
+                            <th class="py-3 px-4">Account Status</th>
+                            <th class="py-3 px-4">CV Status</th>
+                            <th class="py-3 px-4">Last Updated</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-table-body" class="divide-y divide-slate-100 text-slate-700">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-slate-400">
+                                <i class="fa-solid fa-spinner fa-spin text-xl text-indigo-500 mb-2"></i>
+                                <p>Loading student directory...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Student Feedback & Inquiries Card -->
+        <div class="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-comment-dots text-indigo-600"></i>
+                        <span>Student Feedback & Support Inquiries</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Direct messages submitted by students from the homepage</p>
+                </div>
+                <button onclick="fetchFeedback()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                            <th class="py-3.5 px-6">Date</th>
+                            <th class="py-3.5 px-6">Student Name</th>
+                            <th class="py-3.5 px-6">Email</th>
+                            <th class="py-3.5 px-6">Subject</th>
+                            <th class="py-3.5 px-6">Message</th>
+                            <th class="py-3.5 px-6 text-right">Reply</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-table-body" class="divide-y divide-slate-100 text-slate-700">
+                        <tr>
+                            <td colspan="6" class="py-6 text-center text-slate-400">Loading inquiries...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Live Student Chat Management Card (Real-Time Conversations) -->
+        <div id="live-chat-section" class="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-50 to-indigo-50/30">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-indigo-600"></i>
+                        <span>Live Student & Visitor Chats</span>
+                        <span id="chat-total-unread-badge" class="hidden text-xs bg-red-500 text-white font-extrabold px-2 py-0.5 rounded-full">0 New</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Chat in real-time with students and visitors directly from this portal</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Admin Desk Active
+                    </span>
+                    <button onclick="fetchChatThreads()" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh Chats</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Split Screen Container -->
+            <div class="grid grid-cols-1 md:grid-cols-12 min-h-[500px] h-[550px]">
+                <!-- Left: Threads List (md:col-span-4) -->
+                <div class="md:col-span-4 border-r border-slate-200 flex flex-col bg-slate-50/50">
+                    <div class="p-3 border-b border-slate-200 bg-white">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            </span>
+                            <input type="text" id="chat-search-input" placeholder="Search conversations..." oninput="filterChatThreads()"
+                                class="w-full pl-8 pr-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div id="chat-threads-list" class="flex-1 overflow-y-auto divide-y divide-slate-100">
+                        <div class="p-6 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-500 mb-2"></i>
+                            <p>Loading conversations...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Active Conversation (md:col-span-8) -->
+                <div class="md:col-span-8 flex flex-col bg-white">
+                    <!-- Blank state when no thread selected -->
+                    <div id="chat-empty-state" class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-2xl mb-3 shadow-inner">
+                            <i class="fa-regular fa-comments"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-700 text-sm">No Conversation Selected</h4>
+                        <p class="text-xs text-slate-500 max-w-sm mt-1">Select a student or visitor from the left list to view their message history and reply in real-time.</p>
+                    </div>
+
+                    <!-- Active chat screen -->
+                    <div id="chat-active-screen" class="hidden flex-1 flex flex-col h-full">
+                        <!-- Active Chat Header -->
+                        <div class="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70 flex-shrink-0">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs border border-indigo-200" id="active-chat-avatar">
+                                    ST
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-xs" id="active-chat-name">Student Name</h4>
+                                    <p class="text-[11px] text-slate-500" id="active-chat-email">email@student.com</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a id="active-chat-mailto" href="#" target="_blank" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold rounded-lg transition inline-flex items-center gap-1.5 shadow-2xs">
+                                    <i class="fa-solid fa-envelope text-indigo-600"></i>
+                                    <span>Open Gmail</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Active Messages Stage -->
+                        <div id="active-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/40 text-xs">
+                            <!-- Messages rendered dynamically -->
+                        </div>
+
+                        <!-- Admin Reply Input -->
+                        <form id="active-chat-reply-form" class="p-3 border-t border-slate-200 bg-white flex items-center space-x-2 flex-shrink-0">
+                            <input type="text" id="active-chat-input" placeholder="Type reply as Muhammad Adil (Admin)..." autocomplete="off" required
+                                class="flex-1 px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                            <button type="submit" id="active-chat-send-btn" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition">
+                                <span>Send</span>
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin CV View & PDF Modal (Full-Screen Document Desk - Strictly Centered) -->
+    <div id="admin-view-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex flex-col no-print">
+        <!-- Top Toolbar -->
+        <div class="preview-toolbar bg-slate-900 border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between text-white flex-shrink-0 z-20 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2.5">
+                        <h3 class="font-bold text-white text-sm sm:text-base tracking-tight" id="modal-student-name">Student CV Preview</h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Standard A4 (210 × 297 mm)</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Pixel-perfect European layout • Center-aligned executive format</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button type="button" onclick="printAdminCv()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-sm">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Print / Browser PDF</span>
+                </button>
+                <button type="button" onclick="downloadStudentPdf()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-md hover:shadow-indigo-500/25">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download PDF</span>
+                </button>
+                <button type="button" onclick="closeAdminModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition border border-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Desk Canvas - STRICTLY HORIZONTALLY & VERTICALLY CENTERED -->
+        <div class="flex-1 overflow-y-auto overflow-x-auto py-10 px-4 flex justify-center items-start bg-slate-900/90">
+            <div id="admin-cv-paper" class="cv-document mx-auto flex-shrink-0">
+                <!-- Rendered Student CV -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student & Change Password Modal (Admin Credentials Management) -->
+    <div id="edit-student-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base shadow-xs">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900">Edit Student Credentials & Details</h3>
+                        <p class="text-[11px] text-slate-500">Update username, email, and view or change login password</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeEditStudentModal()" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <form id="edit-student-form" class="p-6 space-y-4">
+                <input type="hidden" id="edit-modal-id">
+                <div id="edit-modal-error" class="hidden p-3 rounded-xl bg-red-50 text-red-700 text-xs font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                    <span id="edit-modal-error-text">Failed to update student.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name *</label>
+                    <input type="text" id="edit-modal-name" required class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Email / Gmail *</label>
+                        <input type="email" id="edit-modal-email" required class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Username / Reg No.</label>
+                        <input type="text" id="edit-modal-student-id" class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700">
+                            Student Login Password *
+                        </label>
+                        <button type="button" onclick="generateRandomPass()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800">
+                            + Generate Random
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="edit-modal-password" required placeholder="Enter password (minimum 4 characters)"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-300 text-xs font-mono font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <span class="text-[10px] text-slate-500 mt-1 block">You can view this student's password or type any new password and click Save.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Account Status</label>
+                    <select id="edit-modal-status" class="w-full px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="active">Active (Account unlocked - can log in)</option>
+                        <option value="inactive">Inactive (Deactivated)</option>
+                    </select>
+                </div>
+
+                <div class="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2">
+                    <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="edit-modal-submit-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i>
+                        <span>Save & Update Credentials</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dedicated off-screen slot for pristine A4 PDF generation (no negative coordinates) -->
+    <div id="pdf-render-slot" style="position: absolute; left: 0; top: 0; z-index: -9999; pointer-events: none;"></div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        function checkAdminAccess() {
+            const token = Auth.getToken();
+            const user = Auth.getUser();
+
+            if (!token || !user || user.role !== 'admin') {
+                // Show secure login gate right on this page - NEVER redirect to login.html to prevent any bounce loops!
+                const gate = document.getElementById('admin-login-gate');
+                if (gate) gate.classList.remove('hidden');
+                return false;
+            }
+
+            const gate = document.getElementById('admin-login-gate');
+            if (gate) gate.classList.add('hidden');
+            if (user) {
+                document.getElementById('admin-info').textContent = `Admin: ${user.name || user.email}`;
+            }
+            return true;
+        }
+
+        // Gate Password Toggle
+        const gateToggle = document.getElementById('gate-toggle-password');
+        if (gateToggle) {
+            gateToggle.addEventListener('click', () => {
+                const passInput = document.getElementById('gate-password');
+                const eye = document.getElementById('gate-eye-icon');
+                if (passInput.type === 'password') {
+                    passInput.type = 'text';
+                    eye.className = 'fa-solid fa-eye-slash text-sm';
+                } else {
+                    passInput.type = 'password';
+                    eye.className = 'fa-solid fa-eye text-sm';
+                }
+            });
+        }
+
+        // Handle Admin Gate Login
+        const gateForm = document.getElementById('admin-gate-form');
+        if (gateForm) {
+            gateForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const uInput = document.getElementById('gate-username').value.trim();
+                const pInput = document.getElementById('gate-password').value;
+                const errBox = document.getElementById('gate-error');
+                const errText = document.getElementById('gate-error-text');
+                const btn = document.getElementById('gate-submit-btn');
+                const btnText = document.getElementById('gate-btn-text');
+
+                errBox.classList.add('hidden');
+                btn.disabled = true;
+                btnText.textContent = 'Verifying...';
+
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: uInput, password: pInput })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok || !data.user || data.user.role !== 'admin') {
+                        errText.textContent = data.error || 'Access denied: Valid Admin account required.';
+                        errBox.classList.remove('hidden');
+                        btn.disabled = false;
+                        btnText.textContent = 'Unlock Admin Console';
+                        return;
+                    }
+
+                    // Save token and user
+                    Auth.setToken(data.token);
+                    Auth.setUser(data.user);
+
+                    // Unlock gate immediately!
+                    document.getElementById('admin-login-gate').classList.add('hidden');
+                    document.getElementById('admin-info').textContent = `Admin: ${data.user.name || data.user.email}`;
+
+                    // Load dashboard data immediately
+                    fetchStats();
+                    fetchStudents();
+                    fetchFeedback();
+                    fetchChatThreads();
+
+                } catch (err) {
+                    console.error('Gate login error:', err);
+                    errText.textContent = 'Network or server error occurred.';
+                    errBox.classList.remove('hidden');
+                    btn.disabled = false;
+                    btnText.textContent = 'Unlock Admin Console';
+                }
+            });
+        }
+
+        let currentModalCvData = null;
+
+        // Fetch Dashboard Stats
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+                if (res.status === 401) {
+                    checkAdminAccess();
+                    return;
+                }
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('stat-total-students').textContent = data.total_students;
+                    document.getElementById('stat-active-students').textContent = data.active_students;
+                    document.getElementById('stat-completed-cvs').textContent = data.completed_cvs;
+                    document.getElementById('stat-draft-cvs').textContent = data.draft_cvs;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Render Student Directory Rows
+        function renderStudentRows(students) {
+            const tbody = document.getElementById('student-table-body');
+            if (!tbody) return;
+            if (!students || students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No student records found matching your filters.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = students.map(s => {
+                const cvBadge = s.cv_status === 'Completed'
+                    ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Completed</span>`
+                    : s.cv_status === 'Draft'
+                    ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">Draft</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">Not Created</span>`;
+
+                const accountBadge = s.account_status === 'active'
+                    ? `<span class="inline-flex items-center text-emerald-700 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Active</span>`
+                    : `<span class="inline-flex items-center text-red-600 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>Inactive</span>`;
+
+                const upDate = s.cv_updated_at ? new Date(s.cv_updated_at).toLocaleDateString() : (s.registered_at ? new Date(s.registered_at).toLocaleDateString() : '-');
+                const passText = s.password_plain || '123456';
+                const safeJsonStudent = JSON.stringify(s).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900">${escapeHtml(s.name)}</div>
+                            <div class="text-[11px] text-slate-500 font-mono">${escapeHtml(s.email)}</div>
+                            ${s.phone ? `<div class="text-[10px] text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-phone text-[9px] mr-1"></i>${escapeHtml(s.phone)}</div>` : ''}
+                        </td>
+                        <td class="py-3 px-4 font-mono font-medium text-slate-700">${escapeHtml(s.student_id || 'N/A')}</td>
+                        <td class="py-3 px-4">
+                            <div class="inline-flex items-center gap-1.5 bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg font-mono text-xs">
+                                <span id="pass-display-${s.id}" data-actual="${escapeHtml(passText)}" data-masked="true">••••••••</span>
+                                <button type="button" onclick="togglePassView(${s.id})" title="Show/Hide Password" class="text-slate-400 hover:text-indigo-600 focus:outline-none ml-1">
+                                    <i class="fa-solid fa-eye text-xs" id="pass-eye-${s.id}"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">${accountBadge}</td>
+                        <td class="py-3 px-4">${cvBadge}</td>
+                        <td class="py-3 px-4 text-slate-500">${upDate}</td>
+                        <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            <button onclick="viewStudentCv(${s.id})" title="View CV Preview" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-xs transition">
+                                <i class="fa-solid fa-eye mr-1"></i>View CV
+                            </button>
+                            <button onclick='openEditStudentModal(${safeJsonStudent})' title="Edit Student & Change Password" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold rounded-lg text-xs transition border border-amber-200/60">
+                                <i class="fa-solid fa-key mr-1 text-[10px]"></i>Edit / Pass
+                            </button>
+                            <button onclick="toggleStudentStatus(${s.id}, '${s.account_status === 'active' ? 'inactive' : 'active'}', this)" title="${s.account_status === 'active' ? 'Deactivate Account' : 'Activate Account'}" class="px-2 py-1 ${s.account_status === 'active' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} font-semibold rounded-lg text-xs transition">
+                                ${s.account_status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button onclick="deleteStudent(${s.id}, '${escapeHtml(s.name)}')" title="Delete Student" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-xs transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Render from localStorage cache immediately on page load so table is never blank
+        function renderCachedStudentsOnBoot() {
+            try {
+                const cached = localStorage.getItem('cv_admin_cached_students');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        renderStudentRows(parsed);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Fetch Students Table
+        async function fetchStudents(isBackground = false) {
+            const searchInput = document.getElementById('search-input');
+            const search = searchInput ? searchInput.value : '';
+            const statusFilter = document.getElementById('status-filter');
+            const status = statusFilter ? statusFilter.value : 'all';
+
+            // If background sync and user is actively typing in search, don't interrupt
+            if (isBackground && search.trim().length > 0) return;
+
+            try {
+                const res = await fetch(`/api/admin/students?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`, {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (res.status === 401) {
+                    checkAdminAccess();
+                    return;
+                }
+
+                if (!res.ok) {
+                    if (!isBackground) {
+                        document.getElementById('student-table-body').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-red-500">Failed to load students.</td></tr>`;
+                    }
+                    return;
+                }
+
+                const students = await res.json();
+                renderStudentRows(students);
+
+                // Cache in localStorage so page reload renders them instantly
+                if (!search.trim() && status === 'all') {
+                    localStorage.setItem('cv_admin_cached_students', JSON.stringify(students));
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // View Student CV in Modal
+        async function viewStudentCv(id) {
+            try {
+                const res = await fetch(`/api/admin/students/${id}`, {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (!res.ok) {
+                    alert('Could not retrieve student CV.');
+                    return;
+                }
+
+                currentModalCvData = await res.json();
+                document.getElementById('modal-student-name').textContent = `${currentModalCvData.user.name}'s CV Preview`;
+                document.getElementById('admin-cv-paper').innerHTML = renderCvDocument(currentModalCvData);
+                const modal = document.getElementById('admin-view-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } catch (err) {
+                alert('Error loading student CV.');
+            }
+        }
+
+        function closeAdminModal() {
+            const modal = document.getElementById('admin-view-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentModalCvData = null;
+        }
+
+        function printAdminCv() {
+            window.print();
+        }
+
+        async function downloadStudentPdf() {
+            if (!currentModalCvData) return;
+            const pInfo = currentModalCvData.personal_info || (currentModalCvData.user ? { name: currentModalCvData.user.name } : {});
+            const studentName = (pInfo.name || 'Student').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const filename = `${studentName}_CV.pdf`;
+
+            const slot = document.getElementById('pdf-render-slot');
+            slot.innerHTML = `
+                <div class="cv-document" style="box-shadow: none; margin: 0; padding: 16mm 18mm; width: 210mm; min-height: auto;">
+                    ${renderCvDocument(currentModalCvData)}
+                </div>
+            `;
+
+            const targetElement = slot.firstElementChild;
+
+            // Wait for passport photo and all images to be fully loaded
+            const imgs = Array.from(targetElement.querySelectorAll('img'));
+            await Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }));
+
+            const opt = {
+                margin:       0,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css'] }
+            };
+
+            try {
+                await html2pdf().set(opt).from(targetElement).save();
+            } catch (err) {
+                console.error('PDF export error:', err);
+            } finally {
+                slot.innerHTML = '';
+            }
+        }
+
+        function showAdminToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-bold text-white transition-all transform translate-y-3 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-sm' : 'fa-triangle-exclamation text-sm'}"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-3', 'opacity-0');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Toggle Status
+        async function toggleStudentStatus(id, newStatus, btnElem) {
+            const actionLabel = newStatus === 'inactive' ? 'DEACTIVATE' : 'ACTIVATE';
+            if (!confirm(`Are you sure you want to ${actionLabel} this student account?`)) return;
+
+            const oldText = btnElem ? btnElem.innerHTML : '';
+            if (btnElem) {
+                btnElem.disabled = true;
+                btnElem.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>Updating...`;
+            }
+
+            try {
+                const res = await fetch(`/api/admin/students/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Auth.getToken()}`
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok) {
+                    showAdminToast(newStatus === 'inactive'
+                        ? 'Student account DEACTIVATED! (Login blocked)'
+                        : 'Student account ACTIVATED! (Login unlocked)', 'success');
+                    await fetchStudents();
+                    await fetchStats();
+                } else {
+                    showAdminToast(data.error || 'Failed to update student status.', 'error');
+                    if (btnElem) {
+                        btnElem.disabled = false;
+                        btnElem.innerHTML = oldText;
+                    }
+                }
+            } catch (err) {
+                showAdminToast('Error connecting to server. Please try again.', 'error');
+                if (btnElem) {
+                    btnElem.disabled = false;
+                    btnElem.innerHTML = oldText;
+                }
+            }
+        }
+
+        // Delete Student
+        async function deleteStudent(id, name) {
+            if (!confirm(`CAUTION: Are you sure you want to permanently delete student "${name}"? This action cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/students/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (res.ok) {
+                    fetchStudents();
+                    fetchStats();
+                } else {
+                    alert('Failed to delete student.');
+                }
+            } catch (err) {
+                alert('Error deleting student.');
+            }
+        }
+
+        // Toggle plain password visibility in table
+        function togglePassView(id) {
+            const span = document.getElementById(`pass-display-${id}`);
+            const icon = document.getElementById(`pass-eye-${id}`);
+            if (!span || !icon) return;
+
+            const isMasked = span.getAttribute('data-masked') === 'true';
+            const actualPass = span.getAttribute('data-actual') || '';
+
+            if (isMasked) {
+                span.textContent = actualPass;
+                span.setAttribute('data-masked', 'false');
+                icon.className = 'fa-solid fa-eye-slash text-xs text-indigo-600';
+            } else {
+                span.textContent = '••••••••';
+                span.setAttribute('data-masked', 'true');
+                icon.className = 'fa-solid fa-eye text-xs text-slate-400';
+            }
+        }
+
+        // Open Edit Student & Password Modal
+        function openEditStudentModal(student) {
+            if (!student) return;
+            document.getElementById('edit-modal-id').value = student.id;
+            document.getElementById('edit-modal-name').value = student.name || '';
+            document.getElementById('edit-modal-email').value = student.email || '';
+            document.getElementById('edit-modal-student-id').value = student.student_id || '';
+            document.getElementById('edit-modal-password').value = student.password_plain || '123456';
+            document.getElementById('edit-modal-status').value = student.account_status || 'active';
+            document.getElementById('edit-modal-error').classList.add('hidden');
+
+            const modal = document.getElementById('edit-student-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditStudentModal() {
+            const modal = document.getElementById('edit-student-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function generateRandomPass() {
+            const words = ['Umar', 'Student', 'Adil', 'Portal', 'Campus', 'Fast'];
+            const word = words[Math.floor(Math.random() * words.length)];
+            const num = Math.floor(100 + Math.random() * 900);
+            const chars = ['@', '#', '$', '!'];
+            const char = chars[Math.floor(Math.random() * chars.length)];
+            document.getElementById('edit-modal-password').value = `${word}${char}${num}`;
+        }
+
+        // Handle Edit Student Form Submit
+        document.getElementById('edit-student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-modal-id').value;
+            const name = document.getElementById('edit-modal-name').value.trim();
+            const email = document.getElementById('edit-modal-email').value.trim();
+            const student_id = document.getElementById('edit-modal-student-id').value.trim();
+            const password = document.getElementById('edit-modal-password').value.trim();
+            const status = document.getElementById('edit-modal-status').value;
+
+            const errBox = document.getElementById('edit-modal-error');
+            const errText = document.getElementById('edit-modal-error-text');
+            const submitBtn = document.getElementById('edit-modal-submit-btn');
+
+            errBox.classList.add('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/admin/students/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Auth.getToken()}`
+                    },
+                    body: JSON.stringify({ name, email, student_id, password, status })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    errText.textContent = data.error || 'Failed to update student.';
+                    errBox.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                closeEditStudentModal();
+                showAdminToast('Student credentials & status saved successfully!', 'success');
+                fetchStudents();
+                fetchStats();
+            } catch (err) {
+                console.error(err);
+                errText.textContent = 'Network or server error.';
+                errBox.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        function formatCefrDisplay(val) {
+            if (!val || val === '-') return '-';
+            const m = val.match(/\((.*?)\)/);
+            if (m) return m[1];
+            return val;
+        }
+
+        // Shared Render function matching CV formate.pdf
+        function renderCvDocument(data) {
+            const p = data.personal_info || {};
+            const about = data.about_me || '';
+            const edu = data.education || [];
+            const exp = data.experience || [];
+            const skills = data.skills || [];
+            const langs = data.languages || [];
+            const digSkills = data.digital_skills || [];
+            const hobbies = data.hobbies || [];
+            const references = data.references || [];
+
+            let html = '';
+
+            // 1. TOP HEADER: Photo on Left (Passport Size 35x45mm), Name & Contact Info on Right
+            html += `<div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid;">`;
+            
+            if (p.photo_url) {
+                html += `
+                <div style="flex-shrink: 0; width: 35mm; height: 45mm;">
+                    <img src="${p.photo_url}" class="cv-passport-photo" alt="Passport Photo">
+                </div>
+                `;
+            }
+
+            html += `<div style="flex-grow: 1;">`;
+            html += `  <div class="cv-name">${escapeHtml(p.name || 'Student Name')}</div>`;
+            html += `  <hr class="cv-header-rule">`;
+            html += `  <div class="cv-contact-row">`;
+            if (p.nationality) html += `<div><span class="cv-contact-label">Nationality:</span> ${escapeHtml(p.nationality)}</div>`;
+            if (p.phone) html += `<div><span class="cv-contact-label">Phone number:</span> ${escapeHtml(p.phone)}</div>`;
+            if (p.linkedin) {
+                const lk = escapeHtml(p.linkedin);
+                const href = lk.startsWith('http') ? lk : 'https://' + lk;
+                html += `<div><span class="cv-contact-label">LinkedIn:</span> <a href="${href}" target="_blank" style="color: #2b6cb0; text-decoration: underline;">${lk}</a></div>`;
+            }
+            if (p.address) html += `<div><span class="cv-contact-label">Address:</span> ${escapeHtml(p.address)}</div>`;
+            if (p.email) html += `<div><span class="cv-contact-label">Email address:</span> <a href="mailto:${escapeHtml(p.email)}" style="color: #2b6cb0; text-decoration: underline;">${escapeHtml(p.email)}</a></div>`;
+            html += `  </div>`;
+            html += `</div>`;
+            html += `</div>`;
+
+            // 2. About Me (Under Contact Details)
+            if (about.trim()) {
+                html += `
+                <div style="margin-top: 8px; margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid;">
+                    <div style="font-weight: 700; font-size: 10.5pt; color: #1a202c; margin-bottom: 3px;">About me:</div>
+                    <div style="font-size: 9.5pt; color: #2d3748; line-height: 1.5; text-align: justify;">${escapeHtml(about)}</div>
+                </div>
+                `;
+            }
+
+            // 3. Education
+            if (edu.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">EDUCATION</div>
+                    </div>
+                `;
+                edu.forEach(item => {
+                    html += `
+                    <div class="cv-entry-block">
+                        <div class="cv-entry-title">${escapeHtml(item.qualification)}${item.specialization ? ' – Specialization in ' + escapeHtml(item.specialization) : ''}</div>
+                        ${(item.start_year || item.result) ? `
+                        <div class="cv-entry-meta">${escapeHtml(item.start_year || '')}${item.start_year && item.result ? ' | ' : ''}${escapeHtml(item.result || '')}</div>
+                        ` : ''}
+                        ${item.institution ? `
+                        <div class="cv-entry-subtext">${escapeHtml(item.institution)}${item.location ? ', ' + escapeHtml(item.location) : ''}</div>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // 4. Work Experience
+            if (exp.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">WORK EXPERIENCE</div>
+                    </div>
+                `;
+                exp.forEach(item => {
+                    html += `
+                    <div class="cv-entry-block">
+                        <div class="cv-entry-title">${escapeHtml(item.job_title)}${item.organization ? ' | ' + escapeHtml(item.organization) : ''}${item.location ? ', ' + escapeHtml(item.location) : ''}</div>
+                        ${item.start_date ? `<div class="cv-entry-subtext" style="font-weight: 500; margin-bottom: 3px;">${escapeHtml(item.start_date)}</div>` : ''}
+                        ${(item.responsibilities && item.responsibilities.length > 0) ? `
+                        <ul class="cv-entry-bullets">
+                            ${item.responsibilities.map(r => r && r.trim() ? `<li>${escapeHtml(r)}</li>` : '').join('')}
+                        </ul>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // 5. Skills
+            if (skills.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">SKILLS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${skills.map(s => `<li>${escapeHtml(s.proficiency ? s.skill_name + ' – ' + s.proficiency : s.skill_name)}</li>`).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 6. Language (No forced page-break - flows naturally)
+            if (langs.length > 0) {
+                const motherTongues = langs.filter(l => l.is_mother_tongue).map(l => l.language);
+                const others = langs.filter(l => !l.is_mother_tongue);
+
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">LANGUAGE</div>
+                    </div>
+                `;
+                if (motherTongues.length > 0) {
+                    html += `<div style="font-size: 9.5pt; margin-top: 6px; margin-bottom: 4px;">Mother tongue(s): <strong>${escapeHtml(motherTongues.join(', '))}</strong></div>`;
+                }
+                if (others.length > 0) {
+                    html += `
+                    <div style="font-size: 9pt; margin-top: 4px; margin-bottom: 4px; color: #475569;">Other language(s):</div>
+                    <table class="cv-lang-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 20%; text-align: left; padding-left: 8px;">Language</th>
+                                <th colspan="2">UNDERSTANDING</th>
+                                <th colspan="2">SPEAKING</th>
+                                <th rowspan="2" style="vertical-align: middle;">WRITING</th>
+                            </tr>
+                            <tr>
+                                <th>Listening</th>
+                                <th>Reading</th>
+                                <th>Spoken prod.</th>
+                                <th>Spoken inter.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${others.map(o => `
+                            <tr>
+                                <td>${escapeHtml(o.language)}</td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.listening))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.reading))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.spoken_production))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.spoken_interaction))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.writing))}</span></td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            // 7. Digital Skills
+            if (digSkills.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">DIGITAL SKILLS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${digSkills.map(d => `
+                        <li>${d.description ? `<strong>${escapeHtml(d.skill)}</strong> – ${escapeHtml(d.description)}` : `<strong>${escapeHtml(d.skill)}</strong>`}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 8. Hobbies and Interests
+            if (hobbies.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">HOBBIES AND INTERESTS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${hobbies.map(h => `<li>${escapeHtml(h.hobby)}</li>`).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 9. References (Optional - At the very end)
+            if (references.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">REFERENCES</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 6px;">
+                `;
+                references.forEach(r => {
+                    html += `
+                    <div class="cv-entry-block" style="margin-bottom: 4px; padding: 6px 10px; background: #f8fafc; border-left: 2.5px solid #475569; border-radius: 2px;">
+                        <div class="cv-entry-title" style="font-size: 9.8pt; font-weight: 700; color: #0f172a;">${escapeHtml(r.name)}</div>
+                        ${(r.designation || r.organization) ? `
+                        <div class="cv-entry-subtext" style="font-size: 8.8pt; font-weight: 600; color: #334155; margin-top: 2px;">
+                            ${escapeHtml(r.designation || '')}${r.designation && r.organization ? ' — ' : ''}${escapeHtml(r.organization || '')}
+                        </div>
+                        ` : ''}
+                        <div style="font-size: 8.5pt; color: #475569; margin-top: 3px; line-height: 1.45;">
+                            ${r.email ? `<div><span style="font-weight: 600; color: #1e293b;">Email:</span> <a href="mailto:${escapeHtml(r.email)}" style="color: #2563eb; text-decoration: underline;">${escapeHtml(r.email)}</a></div>` : ''}
+                            ${r.phone ? `<div><span style="font-weight: 600; color: #1e293b;">Phone:</span> ${escapeHtml(r.phone)}</div>` : ''}
+                        </div>
+                    </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            return html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Fetch and display student feedback messages
+        async function fetchFeedback() {
+            const tbody = document.getElementById('feedback-table-body');
+            if (!tbody) return;
+
+            try {
+                const res = await Auth.fetchWithAuth('/api/feedback');
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500">Failed to load feedback.</td></tr>';
+                    return;
+                }
+
+                if (!data.feedback || data.feedback.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">No student feedback messages yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.feedback.map(item => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-6 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                            ${escapeHtml(item.created_at || '')}
+                        </td>
+                        <td class="py-3 px-6 font-bold text-slate-800">
+                            ${escapeHtml(item.name)}
+                        </td>
+                        <td class="py-3 px-6 text-slate-600">
+                            <a href="mailto:${escapeHtml(item.email)}" class="text-indigo-600 hover:underline font-mono">
+                                ${escapeHtml(item.email)}
+                            </a>
+                        </td>
+                        <td class="py-3 px-6 text-slate-700 font-medium max-w-xs truncate">
+                            ${escapeHtml(item.subject || 'General Feedback')}
+                        </td>
+                        <td class="py-3 px-6 text-slate-600 max-w-md">
+                            ${escapeHtml(item.message)}
+                        </td>
+                        <td class="py-3 px-6 text-right whitespace-nowrap">
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(item.email)}&su=${encodeURIComponent('Re: ' + (item.subject || 'CV Builder Feedback'))}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-lg transition inline-flex items-center gap-1">
+                                <i class="fa-solid fa-reply text-[10px]"></i>
+                                <span>Reply</span>
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Fetch feedback error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500">Error loading feedback messages.</td></tr>';
+            }
+        }
+
+        // Live filters
+        document.getElementById('search-input').addEventListener('input', () => fetchStudents());
+        document.getElementById('status-filter').addEventListener('change', () => fetchStudents());
+
+        // ==========================================
+        // LIVE STUDENT CHAT DESK (ADMIN REAL-TIME)
+        // ==========================================
+        let allChatThreads = [];
+        let selectedThreadId = null;
+        let adminChatPoll = null;
+
+        async function fetchChatThreads() {
+            try {
+                const res = await Auth.fetchWithAuth('/api/chat/admin/threads');
+                const data = await res.json();
+                if (data.success && data.threads) {
+                    allChatThreads = data.threads;
+                    renderChatThreads(allChatThreads);
+
+                    // Update total unread badge
+                    const totalUnread = allChatThreads.reduce((sum, t) => sum + (t.unread_admin_count || 0), 0);
+                    const unreadBadge = document.getElementById('chat-total-unread-badge');
+                    if (unreadBadge) {
+                        if (totalUnread > 0) {
+                            unreadBadge.textContent = `${totalUnread} New`;
+                            unreadBadge.classList.remove('hidden');
+                        } else {
+                            unreadBadge.classList.add('hidden');
+                        }
+                    }
+
+                    // If a thread is currently open, refresh its messages
+                    if (selectedThreadId) {
+                        fetchActiveThreadMessages(false);
+                    }
+                }
+            } catch (err) {
+                console.error('Fetch chat threads error:', err);
+            }
+        }
+
+        function renderChatThreads(threads) {
+            const listContainer = document.getElementById('chat-threads-list');
+            if (!listContainer) return;
+
+            if (!threads || threads.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 text-xs">
+                        <i class="fa-regular fa-comment-dots text-2xl mb-2 text-slate-300"></i>
+                        <p class="font-semibold">No live chat messages yet.</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">When students or visitors chat, conversations appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = threads.map(t => {
+                const isSelected = (selectedThreadId === t.id);
+                const timeStr = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '';
+                const unread = t.unread_admin_count || 0;
+                const initials = (t.visitor_name || 'ST').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+
+                return `
+                    <div onclick="openChatThread(${t.id})" 
+                         class="p-3.5 cursor-pointer transition flex items-start space-x-3 ${isSelected ? 'bg-indigo-50/80 border-l-4 border-indigo-600' : 'hover:bg-white bg-slate-50/30'}">
+                        <div class="w-9 h-9 rounded-full ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'} font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                            ${escapeHtml(initials)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(t.visitor_name)}</h4>
+                                <span class="text-[10px] text-slate-400 font-mono ml-2 flex-shrink-0">${timeStr}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHtml(t.last_message || 'Started chat...')}</p>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-[10px] text-slate-400 truncate">${escapeHtml(t.visitor_email)}</span>
+                                ${unread > 0 ? `<span class="px-1.5 py-0.2 bg-red-500 text-white text-[9px] font-bold rounded-full">${unread} new</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterChatThreads() {
+            const query = (document.getElementById('chat-search-input').value || '').toLowerCase().trim();
+            if (!query) {
+                renderChatThreads(allChatThreads);
+                return;
+            }
+            const filtered = allChatThreads.filter(t => 
+                (t.visitor_name && t.visitor_name.toLowerCase().includes(query)) ||
+                (t.visitor_email && t.visitor_email.toLowerCase().includes(query)) ||
+                (t.last_message && t.last_message.toLowerCase().includes(query))
+            );
+            renderChatThreads(filtered);
+        }
+
+        async function openChatThread(threadId) {
+            selectedThreadId = threadId;
+            document.getElementById('chat-empty-state').classList.add('hidden');
+            document.getElementById('chat-active-screen').classList.remove('hidden');
+
+            renderChatThreads(allChatThreads); // highlight active item
+            await fetchActiveThreadMessages(true);
+            document.getElementById('active-chat-input').focus();
+        }
+
+        async function fetchActiveThreadMessages(autoScroll = false) {
+            if (!selectedThreadId) return;
+
+            try {
+                const res = await Auth.fetchWithAuth(`/api/chat/admin/threads/${selectedThreadId}/messages`);
+                const data = await res.json();
+
+                if (!res.ok || !data.success) return;
+
+                const thread = data.thread;
+                const messages = data.messages;
+
+                // Update Header
+                document.getElementById('active-chat-name').textContent = thread.visitor_name;
+                document.getElementById('active-chat-email').textContent = thread.visitor_email;
+                const initials = (thread.visitor_name || 'ST').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('active-chat-avatar').textContent = initials;
+                document.getElementById('active-chat-mailto').href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(thread.visitor_email)}&su=${encodeURIComponent('Re: CV Portal Live Chat')}`;
+
+                // Update unread count locally in allChatThreads
+                const tItem = allChatThreads.find(t => t.id === selectedThreadId);
+                if (tItem) tItem.unread_admin_count = 0;
+
+                // Render Messages
+                const stage = document.getElementById('active-chat-messages');
+                stage.innerHTML = messages.map(m => {
+                    const isAdmin = (m.sender_type === 'admin');
+                    const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '';
+
+                    if (isAdmin) {
+                        return `
+                            <div class="flex items-end justify-end space-x-2">
+                                <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-sm shadow-xs max-w-[80%]">
+                                    <div class="text-[10px] text-indigo-200 font-bold mb-0.5">Muhammad Adil (You)</div>
+                                    <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(m.message)}</p>
+                                    <span class="block text-[9px] text-indigo-200 text-right mt-1">${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="flex items-start space-x-2">
+                                <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">
+                                    ${escapeHtml(initials)}
+                                </div>
+                                <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-xs max-w-[80%]">
+                                    <div class="text-[10px] text-slate-400 font-bold mb-0.5">${escapeHtml(m.sender_name)}</div>
+                                    <p class="leading-relaxed whitespace-pre-wrap">${escapeHtml(m.message)}</p>
+                                    <span class="block text-[9px] text-slate-400 mt-1">${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+
+                if (autoScroll) {
+                    stage.scrollTop = stage.scrollHeight;
+                }
+            } catch (err) {
+                console.error('Fetch active messages error:', err);
+            }
+        }
+
+        // Handle Admin Reply Submission
+        document.getElementById('active-chat-reply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedThreadId) return;
+
+            const input = document.getElementById('active-chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const sendBtn = document.getElementById('active-chat-send-btn');
+            sendBtn.disabled = true;
+
+            try {
+                const res = await Auth.fetchWithAuth('/api/chat/admin/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        thread_id: selectedThreadId,
+                        message: msg
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    input.value = '';
+                    await fetchActiveThreadMessages(true);
+                    fetchChatThreads(); // refresh order & preview
+                } else {
+                    alert(data.error || 'Failed to send reply.');
+                }
+            } catch (err) {
+                console.error('Admin reply error:', err);
+                alert('Network error while sending reply.');
+            } finally {
+                sendBtn.disabled = false;
+            }
+        });
+
+        // Initialize on load
+        if (checkAdminAccess()) {
+            renderCachedStudentsOnBoot();
+            fetchStats();
+            fetchStudents();
+            fetchFeedback();
+            fetchChatThreads();
+
+            // Background polling: Live real-time sync for students, stats, and chat (every 4 seconds)
+            setInterval(() => {
+                if (checkAdminAccess()) {
+                    fetchChatThreads();
+                    fetchStudents(true); // background silent live sync
+                    fetchStats();
+                }
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
