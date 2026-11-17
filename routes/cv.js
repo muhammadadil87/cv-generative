@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { authenticate } = require('../authMiddleware');
+const { saveCvCloud } = require('../userCloudStore');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -73,7 +74,7 @@ router.get('/', authenticate, (req, res) => {
 });
 
 // SAVE / UPDATE Student CV
-router.post('/save', authenticate, (req, res) => {
+router.post('/save', authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
         const {
@@ -266,6 +267,16 @@ router.post('/save', authenticate, (req, res) => {
         });
 
         saveTransaction();
+
+        // Sync CV status, phone, nationality to cloud store
+        if (req.user && req.user.email) {
+            await saveCvCloud(req.user.email, {
+                cv_status: status,
+                phone: personal_info.phone || '',
+                nationality: personal_info.nationality || '',
+                name: personal_info.name || ''
+            }).catch(() => {});
+        }
 
         const updatedData = getStudentCvData(userId);
         res.json({

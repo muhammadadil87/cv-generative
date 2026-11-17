@@ -4,9 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { authenticate, JWT_SECRET } = require('../authMiddleware');
+const { syncUserOverrides, registerStudentCloud } = require('../userCloudStore');
 
 // 1. Student Registration
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
     try {
         const { name, email, student_id, password, confirm_password } = req.body;
 
@@ -63,6 +64,18 @@ router.post('/register', (req, res) => {
 
         const newUserId = insertUser();
 
+        // Register to cloud store for multi-container persistence
+        try {
+            await registerStudentCloud({
+                name: trimmedName,
+                email: normalizedEmail,
+                student_id: trimmedStudentId,
+                password_plain: password
+            });
+        } catch (e) {
+            console.warn('Cloud registration sync failed:', e.message);
+        }
+
         // Generate JWT
         const token = jwt.sign(
             { id: newUserId, name: trimmedName, email: normalizedEmail, student_id: trimmedStudentId, role: 'student' },
@@ -95,7 +108,7 @@ router.post('/register', (req, res) => {
 });
 
 // 2. Login (Student & Admin)
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -104,6 +117,10 @@ router.post('/login', (req, res) => {
         }
 
         const normalizedInput = email.trim().toLowerCase();
+
+        // Sync latest status and password overrides from cloud store
+        await syncUserOverrides().catch(() => {});
+
         // Allow login by email address OR username (student_id / admin username)
         const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ? OR LOWER(student_id) = ?').get(normalizedInput, normalizedInput);
 

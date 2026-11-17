@@ -4,13 +4,15 @@ const db = require('../db');
 const bcrypt = require('bcryptjs');
 const { authenticate, requireRole } = require('../authMiddleware');
 const { getStudentCvData } = require('./cv');
+const { syncUserOverrides, setStudentStatusCloud, updateStudentDetailsCloud, deleteStudentCloud } = require('../userCloudStore');
 
 // Enforce admin role for all routes in this router
 router.use(authenticate, requireRole('admin'));
 
 // 1. Admin Dashboard Stats
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
     try {
+        await syncUserOverrides().catch(() => {});
         const totalStudents = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'student'").get().count;
         const totalActive = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'student' AND status = 'active'").get().count;
         const totalCompletedCv = db.prepare("SELECT COUNT(*) as count FROM cv_profiles WHERE status = 'Completed'").get().count;
@@ -29,8 +31,9 @@ router.get('/stats', (req, res) => {
 });
 
 // 2. Student List with Search and Filter
-router.get('/students', (req, res) => {
+router.get('/students', async (req, res) => {
     try {
+        await syncUserOverrides().catch(() => {});
         const { search = '', status = 'all' } = req.query;
         let query = `
             SELECT 
@@ -87,7 +90,7 @@ router.get('/students/:id', (req, res) => {
 });
 
 // 4. Toggle Student Account Status (Active/Deactive)
-router.patch('/students/:id/status', (req, res) => {
+router.patch('/students/:id/status', async (req, res) => {
     try {
         const studentId = parseInt(req.params.id, 10);
         const { status } = req.body;
@@ -96,28 +99,30 @@ router.patch('/students/:id/status', (req, res) => {
             return res.status(400).json({ error: 'Invalid status value.' });
         }
 
-        const student = db.prepare("SELECT id, role FROM users WHERE id = ? AND role = 'student'").get(studentId);
+        const student = db.prepare("SELECT id, email, role FROM users WHERE id = ? AND role = 'student'").get(studentId);
         if (!student) {
             return res.status(404).json({ error: 'Student account not found.' });
         }
 
-        db.prepare('UPDATE users SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, studentId);
-        res.json({ message: `Student account marked as ${status}.` });
+        await setStudentStatusCloud(student.email, status);
+        res.json({ message: `Student account marked as ${status}.`, status });
     } catch (err) {
+        console.error('Error in status toggle:', err);
         res.status(500).json({ error: 'Failed to update student account status.' });
     }
 });
 
 // 5. Delete Student Account (Safeguard)
-router.delete('/students/:id', (req, res) => {
+router.delete('/students/:id', async (req, res) => {
     try {
         const studentId = parseInt(req.params.id, 10);
-        const student = db.prepare("SELECT id, name FROM users WHERE id = ? AND role = 'student'").get(studentId);
+        const student = db.prepare("SELECT id, name, email FROM users WHERE id = ? AND role = 'student'").get(studentId);
         if (!student) {
             return res.status(404).json({ error: 'Student account not found.' });
         }
 
         db.prepare('DELETE FROM users WHERE id = ?').run(studentId);
+        await deleteStudentCloud(student.email).catch(() => {});
         res.json({ message: `Student ${student.name} deleted successfully.` });
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete student record.' });
@@ -125,12 +130,12 @@ router.delete('/students/:id', (req, res) => {
 });
 
 // 6. Update Student Details & Password (Admin management)
-router.put('/students/:id', (req, res) => {
+router.put('/students/:id', async (req, res) => {
     try {
         const studentId = parseInt(req.params.id, 10);
         const { name, email, student_id, password, status } = req.body;
 
-        const student = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'student'").get(studentId);
+        const student = db.prepare("SELECT id, email FROM users WHERE id = ? AND role = 'student'").get(studentId);
         if (!student) {
             return res.status(404).json({ error: 'Student account not found.' });
         }
@@ -161,12 +166,27 @@ router.put('/students/:id', (req, res) => {
                 SET name = ?, email = ?, student_id = ?, password_hash = ?, password_plain = ?, status = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `).run(cleanName, cleanEmail, cleanStudentId, hash, cleanPass, cleanStatus, studentId);
+
+            await updateStudentDetailsCloud(student.email || cleanEmail, {
+                name: cleanName,
+                newEmail: cleanEmail,
+                student_id: cleanStudentId,
+                password_plain: cleanPass,
+                status: cleanStatus
+            });
         } else {
             db.prepare(`
                 UPDATE users 
                 SET name = ?, email = ?, student_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `).run(cleanName, cleanEmail, cleanStudentId, cleanStatus, studentId);
+
+            await updateStudentDetailsCloud(student.email || cleanEmail, {
+                name: cleanName,
+                newEmail: cleanEmail,
+                student_id: cleanStudentId,
+                status: cleanStatus
+            });
         }
 
         res.json({ message: 'Student details and password updated successfully!' });

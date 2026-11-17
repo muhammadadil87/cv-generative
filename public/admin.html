@@ -575,11 +575,90 @@
             }
         }
 
-        // Fetch Students Table
-        async function fetchStudents() {
-            const search = document.getElementById('search-input').value;
-            const status = document.getElementById('status-filter').value;
+        // Render Student Directory Rows
+        function renderStudentRows(students) {
             const tbody = document.getElementById('student-table-body');
+            if (!tbody) return;
+            if (!students || students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No student records found matching your filters.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = students.map(s => {
+                const cvBadge = s.cv_status === 'Completed'
+                    ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Completed</span>`
+                    : s.cv_status === 'Draft'
+                    ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">Draft</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">Not Created</span>`;
+
+                const accountBadge = s.account_status === 'active'
+                    ? `<span class="inline-flex items-center text-emerald-700 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Active</span>`
+                    : `<span class="inline-flex items-center text-red-600 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>Inactive</span>`;
+
+                const upDate = s.cv_updated_at ? new Date(s.cv_updated_at).toLocaleDateString() : (s.registered_at ? new Date(s.registered_at).toLocaleDateString() : '-');
+                const passText = s.password_plain || '123456';
+                const safeJsonStudent = JSON.stringify(s).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900">${escapeHtml(s.name)}</div>
+                            <div class="text-[11px] text-slate-500 font-mono">${escapeHtml(s.email)}</div>
+                            ${s.phone ? `<div class="text-[10px] text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-phone text-[9px] mr-1"></i>${escapeHtml(s.phone)}</div>` : ''}
+                        </td>
+                        <td class="py-3 px-4 font-mono font-medium text-slate-700">${escapeHtml(s.student_id || 'N/A')}</td>
+                        <td class="py-3 px-4">
+                            <div class="inline-flex items-center gap-1.5 bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg font-mono text-xs">
+                                <span id="pass-display-${s.id}" data-actual="${escapeHtml(passText)}" data-masked="true">••••••••</span>
+                                <button type="button" onclick="togglePassView(${s.id})" title="Show/Hide Password" class="text-slate-400 hover:text-indigo-600 focus:outline-none ml-1">
+                                    <i class="fa-solid fa-eye text-xs" id="pass-eye-${s.id}"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">${accountBadge}</td>
+                        <td class="py-3 px-4">${cvBadge}</td>
+                        <td class="py-3 px-4 text-slate-500">${upDate}</td>
+                        <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            <button onclick="viewStudentCv(${s.id})" title="View CV Preview" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-xs transition">
+                                <i class="fa-solid fa-eye mr-1"></i>View CV
+                            </button>
+                            <button onclick='openEditStudentModal(${safeJsonStudent})' title="Edit Student & Change Password" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold rounded-lg text-xs transition border border-amber-200/60">
+                                <i class="fa-solid fa-key mr-1 text-[10px]"></i>Edit / Pass
+                            </button>
+                            <button onclick="toggleStudentStatus(${s.id}, '${s.account_status === 'active' ? 'inactive' : 'active'}', this)" title="${s.account_status === 'active' ? 'Deactivate Account' : 'Activate Account'}" class="px-2 py-1 ${s.account_status === 'active' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} font-semibold rounded-lg text-xs transition">
+                                ${s.account_status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button onclick="deleteStudent(${s.id}, '${escapeHtml(s.name)}')" title="Delete Student" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-xs transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Render from localStorage cache immediately on page load so table is never blank
+        function renderCachedStudentsOnBoot() {
+            try {
+                const cached = localStorage.getItem('cv_admin_cached_students');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        renderStudentRows(parsed);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Fetch Students Table
+        async function fetchStudents(isBackground = false) {
+            const searchInput = document.getElementById('search-input');
+            const search = searchInput ? searchInput.value : '';
+            const statusFilter = document.getElementById('status-filter');
+            const status = statusFilter ? statusFilter.value : 'all';
+
+            // If background sync and user is actively typing in search, don't interrupt
+            if (isBackground && search.trim().length > 0) return;
 
             try {
                 const res = await fetch(`/api/admin/students?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`, {
@@ -592,68 +671,19 @@
                 }
 
                 if (!res.ok) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-red-500">Failed to load students.</td></tr>`;
+                    if (!isBackground) {
+                        document.getElementById('student-table-body').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-red-500">Failed to load students.</td></tr>`;
+                    }
                     return;
                 }
 
                 const students = await res.json();
-                if (students.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No student records found matching your filters.</td></tr>`;
-                    return;
+                renderStudentRows(students);
+
+                // Cache in localStorage so page reload renders them instantly
+                if (!search.trim() && status === 'all') {
+                    localStorage.setItem('cv_admin_cached_students', JSON.stringify(students));
                 }
-
-                tbody.innerHTML = students.map(s => {
-                    const cvBadge = s.cv_status === 'Completed'
-                        ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Completed</span>`
-                        : s.cv_status === 'Draft'
-                        ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">Draft</span>`
-                        : `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">Not Created</span>`;
-
-                    const accountBadge = s.account_status === 'active'
-                        ? `<span class="inline-flex items-center text-emerald-700 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Active</span>`
-                        : `<span class="inline-flex items-center text-red-600 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>Inactive</span>`;
-
-                    const upDate = s.cv_updated_at ? new Date(s.cv_updated_at).toLocaleDateString() : (s.registered_at ? new Date(s.registered_at).toLocaleDateString() : '-');
-                    const passText = s.password_plain || '123456';
-                    const safeJsonStudent = JSON.stringify(s).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-
-                    return `
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-4">
-                                <div class="font-bold text-slate-900">${escapeHtml(s.name)}</div>
-                                <div class="text-[11px] text-slate-500 font-mono">${escapeHtml(s.email)}</div>
-                                ${s.phone ? `<div class="text-[10px] text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-phone text-[9px] mr-1"></i>${escapeHtml(s.phone)}</div>` : ''}
-                            </td>
-                            <td class="py-3 px-4 font-mono font-medium text-slate-700">${escapeHtml(s.student_id || 'N/A')}</td>
-                            <td class="py-3 px-4">
-                                <div class="inline-flex items-center gap-1.5 bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg font-mono text-xs">
-                                    <span id="pass-display-${s.id}" data-actual="${escapeHtml(passText)}" data-masked="true">••••••••</span>
-                                    <button type="button" onclick="togglePassView(${s.id})" title="Show/Hide Password" class="text-slate-400 hover:text-indigo-600 focus:outline-none ml-1">
-                                        <i class="fa-solid fa-eye text-xs" id="pass-eye-${s.id}"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td class="py-3 px-4">${accountBadge}</td>
-                            <td class="py-3 px-4">${cvBadge}</td>
-                            <td class="py-3 px-4 text-slate-500">${upDate}</td>
-                            <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
-                                <button onclick="viewStudentCv(${s.id})" title="View CV Preview" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-xs transition">
-                                    <i class="fa-solid fa-eye mr-1"></i>View CV
-                                </button>
-                                <button onclick='openEditStudentModal(${safeJsonStudent})' title="Edit Student & Change Password" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold rounded-lg text-xs transition border border-amber-200/60">
-                                    <i class="fa-solid fa-key mr-1 text-[10px]"></i>Edit / Pass
-                                </button>
-                                <button onclick="toggleStudentStatus(${s.id}, '${s.account_status === 'active' ? 'inactive' : 'active'}')" title="${s.account_status === 'active' ? 'Deactivate Account' : 'Activate Account'}" class="px-2 py-1 ${s.account_status === 'active' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} font-semibold rounded-lg text-xs transition">
-                                    ${s.account_status === 'active' ? 'Deactivate' : 'Activate'}
-                                </button>
-                                <button onclick="deleteStudent(${s.id}, '${escapeHtml(s.name)}')" title="Delete Student" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-xs transition">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
             } catch (err) {
                 console.error(err);
             }
@@ -736,9 +766,30 @@
             }
         }
 
+        function showAdminToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-bold text-white transition-all transform translate-y-3 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-sm' : 'fa-triangle-exclamation text-sm'}"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-3', 'opacity-0');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
         // Toggle Status
-        async function toggleStudentStatus(id, newStatus) {
-            if (!confirm(`Are you sure you want to change this student account to ${newStatus}?`)) return;
+        async function toggleStudentStatus(id, newStatus, btnElem) {
+            const actionLabel = newStatus === 'inactive' ? 'DEACTIVATE' : 'ACTIVATE';
+            if (!confirm(`Are you sure you want to ${actionLabel} this student account?`)) return;
+
+            const oldText = btnElem ? btnElem.innerHTML : '';
+            if (btnElem) {
+                btnElem.disabled = true;
+                btnElem.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>Updating...`;
+            }
 
             try {
                 const res = await fetch(`/api/admin/students/${id}/status`, {
@@ -750,14 +801,27 @@
                     body: JSON.stringify({ status: newStatus })
                 });
 
+                const data = await res.json().catch(() => ({}));
+
                 if (res.ok) {
-                    fetchStudents();
-                    fetchStats();
+                    showAdminToast(newStatus === 'inactive'
+                        ? 'Student account DEACTIVATED! (Login blocked)'
+                        : 'Student account ACTIVATED! (Login unlocked)', 'success');
+                    await fetchStudents();
+                    await fetchStats();
                 } else {
-                    alert('Failed to update status.');
+                    showAdminToast(data.error || 'Failed to update student status.', 'error');
+                    if (btnElem) {
+                        btnElem.disabled = false;
+                        btnElem.innerHTML = oldText;
+                    }
                 }
             } catch (err) {
-                alert('Error updating student status.');
+                showAdminToast('Error connecting to server. Please try again.', 'error');
+                if (btnElem) {
+                    btnElem.disabled = false;
+                    btnElem.innerHTML = oldText;
+                }
             }
         }
 
@@ -869,6 +933,7 @@
                 }
 
                 closeEditStudentModal();
+                showAdminToast('Student credentials & status saved successfully!', 'success');
                 fetchStudents();
                 fetchStats();
             } catch (err) {
@@ -1389,14 +1454,19 @@
 
         // Initialize on load
         if (checkAdminAccess()) {
+            renderCachedStudentsOnBoot();
             fetchStats();
             fetchStudents();
             fetchFeedback();
             fetchChatThreads();
 
-            // Background polling for admin chat (every 4 seconds)
+            // Background polling: Live real-time sync for students, stats, and chat (every 4 seconds)
             setInterval(() => {
-                if (checkAdminAccess()) fetchChatThreads();
+                if (checkAdminAccess()) {
+                    fetchChatThreads();
+                    fetchStudents(true); // background silent live sync
+                    fetchStats();
+                }
             }, 4000);
         }
     </script>
