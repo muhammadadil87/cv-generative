@@ -103,11 +103,12 @@ router.post('/login', (req, res) => {
             return res.status(400).json({ error: 'Please enter both email and password.' });
         }
 
-        const normalizedEmail = email.trim().toLowerCase();
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail);
+        const normalizedInput = email.trim().toLowerCase();
+        // Allow login by email address OR username (student_id / admin username)
+        const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ? OR LOWER(student_id) = ?').get(normalizedInput, normalizedInput);
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid email or password.' });
+            return res.status(401).json({ error: 'Invalid username/email or password.' });
         }
 
         const isMatch = bcrypt.compareSync(password, user.password_hash);

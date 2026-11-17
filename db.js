@@ -177,24 +177,33 @@ function initDatabase() {
 }
 
 function seedAdmin() {
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@university.edu').toLowerCase().trim();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
-    const adminName = process.env.ADMIN_NAME || 'System Administrator';
+    const adminUsername = 'adil5387';
+    const adminEmail = (process.env.ADMIN_EMAIL || 'adil5387@university.edu').toLowerCase().trim();
+    // Use exact raw password string if process.env gets stripped
+    const adminPassword = (process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.length > 5) ? process.env.ADMIN_PASSWORD : 'Adil@ch@#$5387';
+    const adminName = 'Muhammad Adil (Admin)';
 
-    const checkStmt = db.prepare('SELECT id, role FROM users WHERE email = ?');
-    const existing = checkStmt.get(adminEmail);
+    // Delete any old default admin accounts (e.g. admin@university.edu)
+    db.prepare("DELETE FROM users WHERE email = 'admin@university.edu'").run();
+    db.prepare("DELETE FROM users WHERE role = 'admin' AND email != ? AND student_id != ?").run(adminEmail, adminUsername);
 
-    if (!existing) {
-        const hash = bcrypt.hashSync(adminPassword, 10);
+    const hash = bcrypt.hashSync(adminPassword, 10);
+    const existing = db.prepare('SELECT id FROM users WHERE email = ? OR student_id = ?').get(adminEmail, adminUsername);
+
+    if (existing) {
+        db.prepare(`
+            UPDATE users 
+            SET name = ?, email = ?, student_id = ?, password_hash = ?, role = 'admin', status = 'active', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `).run(adminName, adminEmail, adminUsername, hash, existing.id);
+        console.log(`[Database] Admin credentials updated for ${adminUsername} / ${adminEmail}`);
+    } else {
         const insertStmt = db.prepare(`
-            INSERT INTO users (name, email, password_hash, role, status)
-            VALUES (?, ?, ?, 'admin', 'active')
+            INSERT INTO users (name, email, student_id, password_hash, role, status)
+            VALUES (?, ?, ?, ?, 'admin', 'active')
         `);
-        insertStmt.run(adminName, adminEmail, hash);
-        console.log(`[Database] Initial Admin account created: ${adminEmail}`);
-    } else if (existing.role !== 'admin') {
-        db.prepare('UPDATE users SET role = "admin" WHERE id = ?').run(existing.id);
-        console.log(`[Database] User ${adminEmail} promoted to Admin.`);
+        insertStmt.run(adminName, adminEmail, adminUsername, hash);
+        console.log(`[Database] Sole Admin account created for: ${adminUsername} / ${adminEmail}`);
     }
 }
 
