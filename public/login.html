@@ -113,14 +113,12 @@
 
     <script src="/js/auth.js"></script>
     <script>
-        // Check if already authenticated
-        const existingToken = Auth.getToken();
+        // Pre-fill email/username if user previously logged in
         const existingUser = Auth.getUser();
-        if (existingToken && existingUser) {
-            if (existingUser.role === 'admin') {
-                window.location.href = '/admin.html';
-            } else {
-                window.location.href = '/dashboard.html';
+        if (existingUser && existingUser.email) {
+            const emailInput = document.getElementById('email');
+            if (emailInput && !emailInput.value) {
+                emailInput.value = existingUser.student_id || existingUser.email;
             }
         }
 

@@ -23,6 +23,15 @@ const Auth = {
         localStorage.removeItem('cv_user');
     },
 
+    fetchWithAuth(url, options = {}) {
+        const token = this.getToken();
+        const headers = options.headers ? { ...options.headers } : {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return fetch(url, { ...options, headers });
+    },
+
     async checkSession() {
         const token = this.getToken();
         if (!token) return null;

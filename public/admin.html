@@ -11,6 +11,68 @@
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
 
+    <!-- Admin Login Gate (Appears smoothly if not signed in as admin, preventing any bounce or redirect loops) -->
+    <div id="admin-login-gate" class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 sm:p-8">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-indigo-200 mb-3.5">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Admin Console Access</h2>
+                <p class="text-xs text-slate-500 mt-1">Please enter your verified admin credentials to continue</p>
+            </div>
+
+            <div id="gate-error" class="hidden mb-4 p-3 rounded-xl bg-red-50 text-red-700 border border-red-200 text-xs font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation text-red-500 text-sm"></i>
+                <span id="gate-error-text">Invalid credentials.</span>
+            </div>
+
+            <form id="admin-gate-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Admin Username / Email
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-user-shield text-sm"></i>
+                        </span>
+                        <input type="text" id="gate-username" required autocomplete="username" placeholder="e.g. adil5387" value="adil5387"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Password
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </span>
+                        <input type="password" id="gate-password" required autocomplete="current-password" placeholder="••••••••"
+                            class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button type="button" id="gate-toggle-password" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-eye text-sm" id="gate-eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="gate-submit-btn"
+                    class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-indigo-200 transition flex items-center justify-center space-x-2">
+                    <span id="gate-btn-text">Unlock Admin Console</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+
+                <div class="pt-2 text-center">
+                    <a href="/" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                        <span>Return to Student Homepage</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Top Admin Header -->
     <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -320,10 +382,95 @@
 
     <script src="/js/auth.js"></script>
     <script>
-        Auth.requireAuth('admin');
-        const adminUser = Auth.getUser();
-        if (adminUser) {
-            document.getElementById('admin-info').textContent = `Signed in: ${adminUser.email}`;
+        function checkAdminAccess() {
+            const token = Auth.getToken();
+            const user = Auth.getUser();
+
+            if (!token || !user || user.role !== 'admin') {
+                // Show secure login gate right on this page - NEVER redirect to login.html to prevent any bounce loops!
+                const gate = document.getElementById('admin-login-gate');
+                if (gate) gate.classList.remove('hidden');
+                return false;
+            }
+
+            const gate = document.getElementById('admin-login-gate');
+            if (gate) gate.classList.add('hidden');
+            if (user) {
+                document.getElementById('admin-info').textContent = `Admin: ${user.name || user.email}`;
+            }
+            return true;
+        }
+
+        // Gate Password Toggle
+        const gateToggle = document.getElementById('gate-toggle-password');
+        if (gateToggle) {
+            gateToggle.addEventListener('click', () => {
+                const passInput = document.getElementById('gate-password');
+                const eye = document.getElementById('gate-eye-icon');
+                if (passInput.type === 'password') {
+                    passInput.type = 'text';
+                    eye.className = 'fa-solid fa-eye-slash text-sm';
+                } else {
+                    passInput.type = 'password';
+                    eye.className = 'fa-solid fa-eye text-sm';
+                }
+            });
+        }
+
+        // Handle Admin Gate Login
+        const gateForm = document.getElementById('admin-gate-form');
+        if (gateForm) {
+            gateForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const uInput = document.getElementById('gate-username').value.trim();
+                const pInput = document.getElementById('gate-password').value;
+                const errBox = document.getElementById('gate-error');
+                const errText = document.getElementById('gate-error-text');
+                const btn = document.getElementById('gate-submit-btn');
+                const btnText = document.getElementById('gate-btn-text');
+
+                errBox.classList.add('hidden');
+                btn.disabled = true;
+                btnText.textContent = 'Verifying...';
+
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: uInput, password: pInput })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok || !data.user || data.user.role !== 'admin') {
+                        errText.textContent = data.error || 'Access denied: Valid Admin account required.';
+                        errBox.classList.remove('hidden');
+                        btn.disabled = false;
+                        btnText.textContent = 'Unlock Admin Console';
+                        return;
+                    }
+
+                    // Save token and user
+                    Auth.setToken(data.token);
+                    Auth.setUser(data.user);
+
+                    // Unlock gate immediately!
+                    document.getElementById('admin-login-gate').classList.add('hidden');
+                    document.getElementById('admin-info').textContent = `Admin: ${data.user.name || data.user.email}`;
+
+                    // Load dashboard data immediately
+                    fetchStats();
+                    fetchStudents();
+                    fetchFeedback();
+                    fetchChatThreads();
+
+                } catch (err) {
+                    console.error('Gate login error:', err);
+                    errText.textContent = 'Network or server error occurred.';
+                    errBox.classList.remove('hidden');
+                    btn.disabled = false;
+                    btnText.textContent = 'Unlock Admin Console';
+                }
+            });
         }
 
         let currentModalCvData = null;
@@ -334,6 +481,10 @@
                 const res = await fetch('/api/admin/stats', {
                     headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
                 });
+                if (res.status === 401) {
+                    checkAdminAccess();
+                    return;
+                }
                 if (res.ok) {
                     const data = await res.json();
                     document.getElementById('stat-total-students').textContent = data.total_students;
@@ -356,6 +507,11 @@
                 const res = await fetch(`/api/admin/students?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`, {
                     headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
                 });
+
+                if (res.status === 401) {
+                    checkAdminAccess();
+                    return;
+                }
 
                 if (!res.ok) {
                     tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-red-500">Failed to load students.</td></tr>`;
@@ -1044,15 +1200,17 @@
         });
 
         // Initialize on load
-        fetchStats();
-        fetchStudents();
-        fetchFeedback();
-        fetchChatThreads();
-
-        // Background polling for admin chat (every 4 seconds)
-        setInterval(() => {
+        if (checkAdminAccess()) {
+            fetchStats();
+            fetchStudents();
+            fetchFeedback();
             fetchChatThreads();
-        }, 4000);
+
+            // Background polling for admin chat (every 4 seconds)
+            setInterval(() => {
+                if (checkAdminAccess()) fetchChatThreads();
+            }, 4000);
+        }
     </script>
 </body>
 </html>
