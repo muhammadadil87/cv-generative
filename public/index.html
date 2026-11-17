@@ -80,6 +80,10 @@
                     <i class="fa-solid fa-headset text-xs text-slate-400"></i>
                     <span>Contact</span>
                 </a>
+                <a href="https://www.linkedin.com/in/muhammad-adil-bb8902436" target="_blank" rel="noopener noreferrer" class="hover:text-[#0A66C2] transition flex items-center gap-1.5 whitespace-nowrap text-slate-600">
+                    <i class="fa-brands fa-linkedin text-[#0A66C2] text-sm"></i>
+                    <span>LinkedIn</span>
+                </a>
             </nav>
 
             <!-- Auth Action Buttons -->
@@ -100,6 +104,10 @@
             <a href="/dashboard.html" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">Create CV</a>
             <a href="#about-creator" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">About the Creator</a>
             <a href="#contact-support" class="block py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600">Contact & Support</a>
+            <a href="https://www.linkedin.com/in/muhammad-adil-bb8902436" target="_blank" rel="noopener noreferrer" class="block py-2 text-sm font-semibold text-[#0A66C2] flex items-center gap-2">
+                <i class="fa-brands fa-linkedin text-base"></i>
+                <span>Connect on LinkedIn</span>
+            </a>
             <div id="mobile-nav-actions" class="pt-3 border-t border-slate-100 flex flex-col gap-2">
                 <a href="/login.html" class="w-full text-center py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700">Log In</a>
                 <a href="/register.html" class="w-full text-center py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-sm">Register Free</a>
@@ -108,102 +116,50 @@
     </header>
 
     <!-- Hero Section -->
-    <section id="hero" class="relative overflow-hidden bg-gradient-to-b from-white via-indigo-50/20 to-slate-50 border-b border-slate-200/60 py-16 md:py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+    <section id="hero" class="relative overflow-hidden bg-gradient-to-b from-white via-indigo-50/25 to-slate-50 border-b border-slate-200/60 py-16 md:py-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
             
-            <div class="lg:col-span-7 space-y-6">
-                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200/70 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                    <span>University Standard • Career Ready</span>
-                </div>
-
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
-                    Build your official CV with <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">precision & confidence</span>.
-                </h1>
-
-                <p class="text-lg text-slate-600 leading-relaxed max-w-2xl font-normal">
-                    Designed specifically for university students and fresh graduates. Easily enter your qualifications, professional experience, beginner-friendly language proficiencies, and digital skills according to the standard university template.
-                </p>
-
-                <div class="pt-2 flex flex-wrap gap-4 items-center">
-                    <a href="/dashboard.html" class="inline-flex items-center space-x-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-7 py-3.5 rounded-xl text-base shadow-md hover:shadow-lg shadow-indigo-200 hover:-translate-y-0.5 transition transform">
-                        <i class="fa-solid fa-file-circle-plus"></i>
-                        <span>Create Your CV — Free</span>
-                    </a>
-                    <a href="#about-creator" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold px-6 py-3.5 rounded-xl text-base shadow-sm hover:border-indigo-300 transition">
-                        <i class="fa-solid fa-user-tie text-indigo-600"></i>
-                        <span>About the Creator</span>
-                    </a>
-                </div>
-
-                <!-- Verified Features Badges -->
-                <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold text-slate-600">
-                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
-                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        <span>Europass Standard</span>
-                    </div>
-                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
-                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        <span>Passport Photo Crop</span>
-                    </div>
-                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
-                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        <span>1-Click PDF Export</span>
-                    </div>
-                    <div class="flex items-center space-x-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs">
-                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        <span>100% Free for Students</span>
-                    </div>
-                </div>
+            <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200/70 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>University Standard • Career Ready</span>
             </div>
 
-            <!-- Hero CV Preview Card -->
-            <div class="lg:col-span-5 relative">
-                <div class="relative mx-auto max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform hover:-translate-y-1.5 transition duration-300">
-                    <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 p-5 text-white">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xl">
-                                    <i class="fa-solid fa-file-lines"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-base leading-tight">Executive A4 CV Format</h3>
-                                    <p class="text-xs text-indigo-100">Standard University & Europass Layout</p>
-                                </div>
-                            </div>
-                            <span class="px-2.5 py-1 bg-emerald-400 text-slate-900 text-[11px] font-extrabold rounded-full uppercase tracking-wider">A4 Ready</span>
-                        </div>
-                    </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
+                Build your official CV with <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">precision & confidence</span>.
+            </h1>
 
-                    <div class="p-6 space-y-4">
-                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">1</div>
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-800">Passport Photo Studio</h5>
-                                <p class="text-[11px] text-slate-500">Auto 35mm × 45mm 300 DPI crop with interactive zoom & pan</p>
-                            </div>
-                        </div>
+            <p class="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
+                Designed specifically for university students and fresh graduates. Easily enter your qualifications, professional experience, beginner-friendly language proficiencies, and digital skills according to the standard university template.
+            </p>
 
-                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">2</div>
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-800">Beginner-Friendly Language Grid</h5>
-                                <p class="text-[11px] text-slate-500">Listening, Reading, Speaking & Writing with easy dropdowns</p>
-                            </div>
-                        </div>
+            <div class="pt-2 flex flex-wrap justify-center gap-4 items-center">
+                <a href="/dashboard.html" class="inline-flex items-center space-x-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-7 py-3.5 rounded-xl text-base shadow-md hover:shadow-lg shadow-indigo-200 hover:-translate-y-0.5 transition transform">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <span>Create Your CV — Free</span>
+                </a>
+                <a href="#about-creator" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold px-6 py-3.5 rounded-xl text-base shadow-sm hover:border-indigo-300 transition">
+                    <i class="fa-solid fa-user-tie text-indigo-600"></i>
+                    <span>About the Creator</span>
+                </a>
+            </div>
 
-                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">3</div>
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-800">Optional References Section</h5>
-                                <p class="text-[11px] text-slate-500">Easily add faculty references with designation, phone & email</p>
-                            </div>
-                        </div>
-
-                        <a href="/dashboard.html" class="block w-full text-center py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-sm transition">
-                            Start Building Now <i class="fa-solid fa-arrow-right ml-1.5 text-xs"></i>
-                        </a>
-                    </div>
+            <!-- Verified Features Badges -->
+            <div class="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold text-slate-600 max-w-3xl mx-auto">
+                <div class="flex items-center justify-center space-x-2 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                    <span>Europass Standard</span>
+                </div>
+                <div class="flex items-center justify-center space-x-2 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                    <span>Passport Photo Crop</span>
+                </div>
+                <div class="flex items-center justify-center space-x-2 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                    <span>1-Click PDF Export</span>
+                </div>
+                <div class="flex items-center justify-center space-x-2 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                    <span>100% Free for Students</span>
                 </div>
             </div>
 
@@ -317,6 +273,16 @@
                                 <span class="text-sm font-bold text-slate-800">Visiting Lecturer @ UE Lahore</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- LinkedIn Direct Profile Link Button -->
+                    <div class="pt-2">
+                        <a href="https://www.linkedin.com/in/muhammad-adil-bb8902436" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-2.5 px-5 py-3 bg-[#0A66C2] hover:bg-[#004182] text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition hover:-translate-y-0.5 transform">
+                            <i class="fa-brands fa-linkedin text-base"></i>
+                            <span>Connect with Muhammad Adil on LinkedIn</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1 opacity-80"></i>
+                        </a>
                     </div>
                 </div>
 
@@ -697,6 +663,13 @@
                                 <i class="fa-solid fa-comment-dots text-indigo-600"></i>
                                 <span>Send Feedback / Suggestion</span>
                             </button>
+
+                            <!-- Button 4: Connect on LinkedIn -->
+                            <a href="https://www.linkedin.com/in/muhammad-adil-bb8902436" target="_blank" rel="noopener noreferrer"
+                                class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#0A66C2] hover:bg-[#004182] text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition">
+                                <i class="fa-brands fa-linkedin text-base"></i>
+                                <span>Connect on LinkedIn</span>
+                            </a>
                         </div>
                     </div>
 
@@ -713,7 +686,7 @@
                             <h3 class="text-xl font-bold text-slate-900">Student Feedback & Suggestion Box</h3>
                         </div>
                         <p class="text-xs text-slate-500 mb-6">
-                            Your feedback is saved directly to our system database to continuously improve the CV builder experience.
+                            Your message will be sent directly to Muhammad Adil's email (<span class="font-semibold text-indigo-600">muhammadadil5387@gmail.com</span>) and saved in our portal records.
                         </p>
 
                         <form id="feedback-form" class="space-y-4">
@@ -745,8 +718,8 @@
 
                             <button type="submit" id="feedback-submit-btn"
                                 class="w-full py-3.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition flex items-center justify-center gap-2">
-                                <span id="feedback-btn-text">Submit Feedback</span>
                                 <i class="fa-solid fa-paper-plane text-xs"></i>
+                                <span id="feedback-btn-text">Send Directly to Muhammad Adil's Email</span>
                             </button>
                         </form>
                     </div>
@@ -793,6 +766,7 @@
                     <li><a href="/register.html" class="hover:text-white transition">Student Registration</a></li>
                     <li><a href="/login.html" class="hover:text-white transition">Admin Portal</a></li>
                     <li><a href="mailto:muhammadadil5387@gmail.com" class="hover:text-white transition">Support Email</a></li>
+                    <li><a href="https://www.linkedin.com/in/muhammad-adil-bb8902436" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition flex items-center gap-1"><i class="fa-brands fa-linkedin"></i><span>LinkedIn Profile</span></a></li>
                 </ul>
             </div>
 
@@ -862,7 +836,7 @@
 
                 // Show loading state
                 submitBtn.disabled = true;
-                btnText.textContent = 'Saving Feedback...';
+                btnText.textContent = 'Sending Message...';
                 feedbackAlert.classList.add('hidden');
 
                 try {
@@ -874,18 +848,43 @@
 
                     const data = await response.json();
 
-                    if (response.ok && data.success) {
-                        showAlert(data.message || 'Thank you! Your feedback has been successfully submitted and saved.', 'success');
-                        feedbackForm.reset();
-                    } else {
-                        showAlert(data.error || 'Failed to submit feedback. Please check your information.', 'error');
+                    // Prepare direct email delivery to Muhammad Adil
+                    const mailSubject = encodeURIComponent(`[CV Builder Feedback] - ${subject || 'Inquiry from ' + name}`);
+                    const mailBody = encodeURIComponent(`Hello Muhammad Adil,\n\nStudent Name: ${name}\nStudent Email: ${email}\nSubject: ${subject || 'General Inquiry'}\n\nMessage:\n${message}\n\n---\nSent via Student CV Builder Portal`);
+                    
+                    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=muhammadadil5387@gmail.com&su=${mailSubject}&body=${mailBody}`;
+                    const mailtoUrl = `mailto:muhammadadil5387@gmail.com?subject=${mailSubject}&body=${mailBody}`;
+
+                    // Open Gmail directly in a new window/tab
+                    const opened = window.open(gmailUrl, '_blank');
+                    if (!opened) {
+                        window.location.href = mailtoUrl;
                     }
+
+                    showAlert(`
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                                <span class="font-bold text-slate-900 text-sm">Feedback Sent & Saved!</span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Your message has been saved in our portal and opened in Gmail to deliver directly to <strong class="text-slate-900">muhammadadil5387@gmail.com</strong>.
+                            </p>
+                            <div class="pt-1">
+                                <a href="${gmailUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs shadow-xs transition">
+                                    <i class="fa-brands fa-google text-xs"></i>
+                                    <span>Open in Gmail (Send Now)</span>
+                                </a>
+                            </div>
+                        </div>
+                    `, 'custom-success');
+                    feedbackForm.reset();
                 } catch (err) {
                     console.error('Feedback submission error:', err);
                     showAlert('Network error. Please try again or email directly at muhammadadil5387@gmail.com.', 'error');
                 } finally {
                     submitBtn.disabled = false;
-                    btnText.textContent = 'Submit Feedback';
+                    btnText.textContent = 'Send Directly to Muhammad Adil\'s Email';
                 }
             });
         }
@@ -894,7 +893,10 @@
             if (!feedbackAlert) return;
             feedbackAlert.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-red-50', 'text-red-700', 'border-red-200');
             
-            if (type === 'success') {
+            if (type === 'custom-success') {
+                feedbackAlert.className = 'p-4 rounded-xl text-xs bg-emerald-50 border border-emerald-200 block';
+                feedbackAlert.innerHTML = msg;
+            } else if (type === 'success') {
                 feedbackAlert.className = 'p-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-2';
                 feedbackAlert.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> <span>' + msg + '</span>';
             } else {
