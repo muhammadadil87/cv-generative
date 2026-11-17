@@ -1,0 +1,254 @@
+/* Modern CV Portal & Official Europass/University Template Styling */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
+}
+
+/* Authentic A4 Document Sheet - Strictly Centered */
+.cv-document {
+    background: #ffffff;
+    width: 210mm;
+    min-width: 210mm;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto !important;
+    padding: 16mm 18mm 16mm 18mm;
+    box-sizing: border-box;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.08);
+    color: #0f172a;
+    font-size: 9.5pt;
+    line-height: 1.48;
+    position: relative;
+    border-radius: 2px;
+}
+
+/* Header & Passport Photo (Official Standard: 35mm x 45mm, 7:9 ratio) */
+.cv-passport-photo {
+    width: 35mm;
+    height: 45mm;
+    min-width: 35mm;
+    min-height: 45mm;
+    max-width: 35mm;
+    max-height: 45mm;
+    aspect-ratio: 7 / 9;
+    object-fit: cover;
+    object-position: center top;
+    border: 1.5px solid #64748b;
+    border-radius: 2px;
+    display: block;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cv-name {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin-bottom: 4px;
+}
+
+.cv-header-rule {
+    border: none;
+    border-bottom: 1.5px solid #475569;
+    margin: 4px 0 7px 0;
+}
+
+.cv-contact-row {
+    font-size: 9pt;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.cv-contact-label {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Section Headings */
+.cv-section-block {
+    margin-top: 13px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.cv-section-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 1.5px solid #475569;
+    padding-bottom: 3px;
+    margin-bottom: 8px;
+}
+
+.cv-bullet-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #334155;
+    display: inline-block;
+    margin-right: 9px;
+    flex-shrink: 0;
+}
+
+.cv-section-title {
+    font-size: 10.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #0f172a;
+}
+
+/* Entries */
+.cv-entry-block {
+    margin-bottom: 9px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.cv-entry-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.cv-entry-meta {
+    font-size: 9pt;
+    font-weight: 600;
+    color: #334155;
+}
+
+.cv-entry-subtext {
+    font-size: 8.8pt;
+    color: #475569;
+}
+
+.cv-entry-bullets {
+    list-style-type: disc;
+    margin-left: 18px;
+    margin-top: 4px;
+    font-size: 9pt;
+    color: #334155;
+    line-height: 1.48;
+}
+
+.cv-entry-bullets li {
+    margin-bottom: 3px;
+}
+
+/* Language Table matching CV formate.pdf */
+.cv-lang-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 8.8pt;
+    text-align: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.cv-lang-table th, .cv-lang-table td {
+    padding: 5px 4px;
+    border: 1px solid #cbd5e1;
+}
+
+.cv-lang-table th {
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+    font-size: 8.2pt;
+    background-color: #f8fafc;
+}
+
+.cv-lang-table thead tr:last-child th {
+    font-size: 7.8pt;
+    font-weight: 600;
+    color: #475569;
+    text-transform: none;
+}
+
+.cv-lang-table tbody td {
+    font-size: 8.8pt;
+    color: #334155;
+}
+
+.cv-lang-table tbody td:first-child {
+    text-align: left;
+    font-weight: 700;
+    color: #0f172a;
+    padding-left: 8px;
+    background-color: #fcfcfd;
+}
+
+.cv-cefr-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    font-weight: 700;
+    font-size: 8.2pt;
+    color: #1e293b;
+    background-color: #f1f5f9;
+    border-radius: 3px;
+}
+
+/* Print Rules for Perfect A4 Download & Native Browser Print */
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
+
+@media print {
+    html, body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    body * {
+        visibility: hidden !important;
+    }
+    
+    #preview-modal, #preview-modal *,
+    #admin-view-modal, #admin-view-modal * {
+        visibility: visible !important;
+    }
+    
+    #preview-modal, #admin-view-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 210mm !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        overflow: visible !important;
+        display: block !important;
+    }
+    
+    .preview-toolbar, .no-print {
+        display: none !important;
+    }
+    
+    .cv-document {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 auto !important;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-height: auto !important;
+        padding: 14mm 16mm !important;
+        background: #ffffff !important;
+    }
+    
+    .cv-section-block, .cv-entry-block, .cv-lang-table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+}

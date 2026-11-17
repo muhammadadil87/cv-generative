@@ -1,0 +1,216 @@
+ANTIGRAVITY MASTER PROMPT
+PROJECT: STUDENT CV BUILDER & ADMIN PORTAL
+
+Build a complete, functional web application called “Student CV Builder Portal” using the requirements below. This is an implementation request, not a UI mockup.
+
+IMPORTANT REFERENCE FILE
+I have provided a PDF named “CV formate.pdf”. Use it as the visual and structural reference for the generated student CV. Preserve its professional style, section order, typography/layout feel, and heading names as closely as practical. Do not copy the sample person's personal information into student CVs. Use the PDF only as a template/reference.
+
+==================================================
+1. USER ROLES & AUTHENTICATION
+==================================================
+Create two protected roles:
+- Admin
+- Student
+
+Implement real authentication:
+- Student self-registration
+- Login and logout
+- Secure password handling
+- Role-based route protection
+- Session handling
+- Password reset flow if supported by the selected stack
+
+Students must never access another student's profile, CV, or private data. Admin can access all student records. Do not rely only on frontend hiding; enforce permissions on the backend/database.
+
+Create a secure initial Admin setup method (environment variables, setup wizard, or documented seed process). Never hardcode an insecure admin password in production.
+
+==================================================
+2. STUDENT REGISTRATION
+==================================================
+Registration fields:
+- Full Name
+- Email
+- Student ID / Registration Number (optional if not available)
+- Password
+- Confirm Password
+
+Validate email, required fields, and password confirmation. Prevent duplicate accounts by email. After registration, let the student log in and reach their own dashboard.
+
+==================================================
+3. STUDENT DASHBOARD
+==================================================
+Provide clear actions:
+- Create CV
+- Edit My CV
+- CV Preview
+- Download CV PDF
+- Save Changes
+- Logout
+
+Show CV status (Not Created / Draft / Completed) and last updated date. Autosave or a clear Save Draft action should prevent accidental data loss.
+
+==================================================
+4. CV BUILDER — USE MY PDF FORMAT
+==================================================
+Use these sections/headings from “CV formate.pdf”:
+1. Personal Information
+2. About Me
+3. Education
+4. Work Experience
+5. Skills
+6. Language
+7. Digital Skills
+8. Hobbies and Interests
+
+Personal Information fields:
+- Full Name
+- Nationality
+- Phone Number
+- Email Address
+- Address
+- LinkedIn (optional)
+- Profile Photo (optional)
+
+About Me:
+- A free-text profile/summary.
+
+Education (repeatable entries):
+- Degree / Qualification
+- Specialization (optional)
+- Institute / University
+- Campus / City / Country (optional)
+- Start Year and End Year (or date range)
+- CGPA / Marks / Grade (optional)
+
+Work Experience (repeatable entries):
+- Job Title
+- Organization
+- Location (optional)
+- Start Date
+- End Date / Present
+- Responsibilities / Achievements (multiple bullet points)
+
+Skills:
+- Add multiple skills
+- Optional proficiency level
+
+Language (repeatable entries):
+- Language
+- Listening
+- Reading
+- Spoken Production
+- Spoken Interaction
+- Writing
+- Allow student to choose a simple proficiency level (e.g., A1–C2 or Basic/Intermediate/Advanced), without forcing a rating for every skill.
+
+Digital Skills:
+- Add multiple digital skills / tools with optional descriptions.
+
+Hobbies and Interests:
+- Add multiple hobbies/interests.
+
+==================================================
+5. FLEXIBLE OPTIONAL SECTIONS — CRITICAL
+==================================================
+- Only basic account registration fields are required.
+- No CV section is mandatory.
+- Students can fill only the information they have.
+- Students can leave any section empty.
+- Students can add, edit, remove, and reorder repeatable entries.
+- Do not add any extra CV headings beyond the headings listed above unless the student explicitly adds a custom section and the feature is enabled.
+- Hide empty sections and headings in the final CV PDF and preview.
+- Never show empty placeholders, “N/A”, fake information, or sample data in a student's CV.
+- If a student has no Work Experience, do not show Work Experience heading at all.
+- The final CV must contain only the student's entered information.
+
+==================================================
+6. CV PREVIEW & PDF GENERATION
+==================================================
+- Provide a live or refreshable CV preview.
+- Generate a downloadable PDF from the same layout as the preview.
+- Match “CV formate.pdf” as closely as practical in section order, spacing, headings, and overall design.
+- Use proper margins, readable fonts, consistent alignment, and professional page breaks.
+- Support two or more pages when required; do not cut off text or split headings awkwardly.
+- Ensure profile photo (if provided) is displayed appropriately.
+- Use the student's own data only.
+- PDF filename should be based on the student's name, e.g. StudentName_CV.pdf (sanitize filename).
+- Test PDF download on desktop and mobile browsers.
+
+==================================================
+7. ADMIN PANEL
+==================================================
+Create a separate protected Admin Dashboard with:
+- Total registered students
+- Total CVs created
+- Student list/table
+- Search by name, email, or Student ID
+- Student registration date and CV last updated date
+- View student profile
+- View complete CV preview
+- Download individual CV PDF
+- Export student records to CSV/Excel
+- Download all student CV PDFs in one ZIP (if technically supported)
+- Manage student accounts (activate/deactivate; delete only with confirmation and appropriate safeguards)
+
+Admin must be able to see all data submitted by students. Newly saved/updated CVs should appear in Admin automatically without manual copying.
+
+==================================================
+8. DATABASE & DATA MODEL
+==================================================
+Use a proper persistent database. Suggested entities:
+- Users (id, name, email, student_id, role, created_at, status)
+- StudentProfile (user_id, nationality, phone, address, linkedin, photo, about_me)
+- Education (id, user_id, qualification, specialization, institution, location, start_year, end_year, result)
+- WorkExperience (id, user_id, job_title, organization, location, start_date, end_date, is_current, responsibilities)
+- Skills (id, user_id, skill_name, proficiency)
+- Languages (id, user_id, language, listening, reading, spoken_production, spoken_interaction, writing)
+- DigitalSkills (id, user_id, skill, description)
+- Hobbies (id, user_id, hobby)
+- CV metadata (user_id, status, created_at, updated_at)
+
+Use proper foreign keys, validation, and database access policies. Students can read/write only their own records; Admin can read/manage all records. Persist data across logout/login and application restarts.
+
+==================================================
+9. UI / UX
+==================================================
+- Modern, clean, professional university portal
+- Responsive on desktop, tablet, and mobile
+- Separate Admin and Student dashboards
+- Clear navigation and section-by-section CV form
+- Add/Remove buttons for repeated entries
+- Helpful validation messages
+- Loading, success, and error states
+- Confirmation before destructive actions
+- Accessible labels and keyboard-friendly controls
+- Do not use fake dashboard metrics or dummy student records in production
+
+==================================================
+10. TECHNICAL IMPLEMENTATION
+==================================================
+- First inspect the existing project and preserve any working code/features.
+- Choose a suitable stack and implement frontend, backend, authentication, database, and PDF generation.
+- Configure environment variables and provide an .env.example file (no real secrets).
+- Include database migrations/schema and a secure Admin setup/seed method.
+- Handle errors properly and validate data on the server.
+- Do not expose secrets or privileged keys in frontend code.
+- Do not claim a feature is complete unless it actually works.
+- If an external service or configuration is required, clearly document the exact setup steps.
+
+==================================================
+11. TESTING & COMPLETION CHECKLIST
+==================================================
+Before declaring the project complete, test:
+1. Student can register and log in.
+2. Student can save a CV with only selected sections.
+3. Empty sections are hidden in preview and PDF.
+4. Student can edit and save CV; data persists.
+5. Student can download a correct PDF.
+6. Student A cannot view Student B's CV or data.
+7. Admin can log in and view all student records.
+8. Admin can open and download each student's CV.
+9. Admin export works.
+10. Responsive UI works on mobile and desktop.
+11. No sample person's details or dummy records appear in real student CVs.
+
+Build the application end-to-end. Start by inspecting the project and the uploaded “CV formate.pdf”, then implement the system, run it, fix errors, and provide a concise README explaining how to start the app, configure the database, create the Admin account, and deploy it.

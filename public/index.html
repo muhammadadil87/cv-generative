@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student CV Builder & Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between">
+
+    <!-- Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xl font-bold shadow-md">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold text-slate-900 tracking-tight">University Portal</span>
+                    <span class="text-xs text-indigo-600 font-semibold block uppercase tracking-wider">Student CV Builder</span>
+                </div>
+            </div>
+            <div id="nav-actions" class="flex items-center space-x-3">
+                <a href="/login.html" class="text-slate-600 hover:text-indigo-600 font-medium px-4 py-2 text-sm transition">Log In</a>
+                <a href="/register.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm transition">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-grow flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+                <div class="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
+                    <i class="fa-solid fa-award"></i>
+                    <span>Official Format & Career Ready</span>
+                </div>
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">
+                    Build your official CV with <span class="text-indigo-600">precision & confidence</span>.
+                </h1>
+                <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                    Designed specifically for students and alumni. Easily enter your education, experience, language proficiencies, and digital skills according to the standard university template.
+                </p>
+                <div class="mt-8 flex flex-wrap gap-4">
+                    <a href="/register.html" class="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg text-base shadow-md hover:shadow-lg transition">
+                        <span>Get Started — Free</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    <a href="/login.html" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold px-6 py-3 rounded-lg text-base shadow-sm transition">
+                        <i class="fa-solid fa-user-lock"></i>
+                        <span>Student & Admin Login</span>
+                    </a>
+                </div>
+
+                <!-- Features list -->
+                <div class="mt-10 grid grid-cols-2 gap-4 text-sm text-slate-600">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                        <span>Zero empty placeholders</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                        <span>One-click PDF download</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                        <span>Standard Europass language grid</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                        <span>Live refreshable preview</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Card / Graphic -->
+            <div class="relative">
+                <div class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-6 transform hover:-translate-y-1 transition duration-300">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-600">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Professional CV Structure</h4>
+                                <p class="text-xs text-slate-500">Standard University Format</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">Verified</span>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
+                            <span class="font-semibold text-slate-700 block">Personal Information & Summary</span>
+                            <span class="text-slate-500">Contact details, address, LinkedIn, and About Me</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
+                            <span class="font-semibold text-slate-700 block">Education & Work Experience</span>
+                            <span class="text-slate-500">Qualifications, grades, institutions, and achievements</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
+                            <span class="font-semibold text-slate-700 block">Languages & Digital Skills</span>
+                            <span class="text-slate-500">CEFR table (Listening, Reading, Speaking, Writing)</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-xs text-slate-500">Ready to build yours?</span>
+                        <a href="/register.html" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1">
+                            <span>Create account</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Student CV Builder & Admin Portal. All rights reserved.</p>
+    </footer>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // Check if user is already logged in
+        const user = Auth.getUser();
+        if (user && Auth.getToken()) {
+            const nav = document.getElementById('nav-actions');
+            if (user.role === 'admin') {
+                nav.innerHTML = `
+                    <a href="/admin.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm">Admin Dashboard</a>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <a href="/dashboard.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm">My Dashboard</a>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — CV Builder Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Top Admin Header -->
+    <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-sm">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <span class="text-base font-bold tracking-tight block leading-tight">Admin Console</span>
+                    <span class="text-[11px] text-slate-400 font-medium">Student CV Management</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <span id="admin-info" class="text-xs text-slate-300 font-medium hidden sm:inline">Admin: admin@university.edu</span>
+                <button onclick="Auth.logout()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white transition flex items-center space-x-1.5 border border-slate-700">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Top Overview Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Students</span>
+                    <h3 id="stat-total-students" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Accounts</span>
+                    <h3 id="stat-active-students" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">CVs Completed</span>
+                    <h3 id="stat-completed-cvs" class="text-3xl font-extrabold text-indigo-600 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">CVs in Draft</span>
+                    <h3 id="stat-draft-cvs" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-file-pen"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Directory Table Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Header Controls -->
+            <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Student Directory</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Manage accounts, view full CVs, and export records</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="search-input" placeholder="Search name, email, ID..."
+                            class="w-full pl-9 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <!-- Filter Status -->
+                    <select id="status-filter" class="px-3 py-2 bg-slate-50 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 focus:outline-none">
+                        <option value="all">All Accounts</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
+
+                    <!-- Export CSV Button -->
+                    <a href="/api/admin/export/csv" id="btn-export-csv" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Export CSV</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                            <th class="py-3 px-4">Student</th>
+                            <th class="py-3 px-4">ID / Reg No.</th>
+                            <th class="py-3 px-4">Account Status</th>
+                            <th class="py-3 px-4">CV Status</th>
+                            <th class="py-3 px-4">Registered Date</th>
+                            <th class="py-3 px-4">Last Updated</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-table-body" class="divide-y divide-slate-100 text-slate-700">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-slate-400">
+                                <i class="fa-solid fa-spinner fa-spin text-xl text-indigo-500 mb-2"></i>
+                                <p>Loading student directory...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin CV View & PDF Modal (Full-Screen Document Desk - Strictly Centered) -->
+    <div id="admin-view-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex flex-col no-print">
+        <!-- Top Toolbar -->
+        <div class="preview-toolbar bg-slate-900 border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between text-white flex-shrink-0 z-20 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2.5">
+                        <h3 class="font-bold text-white text-sm sm:text-base tracking-tight" id="modal-student-name">Student CV Preview</h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Standard A4 (210 × 297 mm)</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Pixel-perfect European layout • Center-aligned executive format</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button type="button" onclick="printAdminCv()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-sm">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Print / Browser PDF</span>
+                </button>
+                <button type="button" onclick="downloadStudentPdf()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-md hover:shadow-indigo-500/25">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download PDF</span>
+                </button>
+                <button type="button" onclick="closeAdminModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition border border-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Desk Canvas - STRICTLY HORIZONTALLY & VERTICALLY CENTERED -->
+        <div class="flex-1 overflow-y-auto overflow-x-auto py-10 px-4 flex justify-center items-start bg-slate-900/90">
+            <div id="admin-cv-paper" class="cv-document mx-auto flex-shrink-0">
+                <!-- Rendered Student CV -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Dedicated off-screen slot for pristine A4 PDF generation (no negative coordinates) -->
+    <div id="pdf-render-slot" style="position: absolute; left: 0; top: 0; z-index: -9999; pointer-events: none;"></div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        Auth.requireAuth('admin');
+        const adminUser = Auth.getUser();
+        if (adminUser) {
+            document.getElementById('admin-info').textContent = `Signed in: ${adminUser.email}`;
+        }
+
+        let currentModalCvData = null;
+
+        // Fetch Dashboard Stats
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('stat-total-students').textContent = data.total_students;
+                    document.getElementById('stat-active-students').textContent = data.active_students;
+                    document.getElementById('stat-completed-cvs').textContent = data.completed_cvs;
+                    document.getElementById('stat-draft-cvs').textContent = data.draft_cvs;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Fetch Students Table
+        async function fetchStudents() {
+            const search = document.getElementById('search-input').value;
+            const status = document.getElementById('status-filter').value;
+            const tbody = document.getElementById('student-table-body');
+
+            try {
+                const res = await fetch(`/api/admin/students?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`, {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (!res.ok) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-red-500">Failed to load students.</td></tr>`;
+                    return;
+                }
+
+                const students = await res.json();
+                if (students.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No student records found matching your filters.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = students.map(s => {
+                    const cvBadge = s.cv_status === 'Completed'
+                        ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Completed</span>`
+                        : s.cv_status === 'Draft'
+                        ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">Draft</span>`
+                        : `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">Not Created</span>`;
+
+                    const accountBadge = s.account_status === 'active'
+                        ? `<span class="inline-flex items-center text-emerald-700 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Active</span>`
+                        : `<span class="inline-flex items-center text-red-600 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>Inactive</span>`;
+
+                    const regDate = s.registered_at ? new Date(s.registered_at).toLocaleDateString() : '-';
+                    const upDate = s.cv_updated_at ? new Date(s.cv_updated_at).toLocaleDateString() : 'Never';
+
+                    return `
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="py-3 px-4">
+                                <div class="font-bold text-slate-900">${escapeHtml(s.name)}</div>
+                                <div class="text-[11px] text-slate-500">${escapeHtml(s.email)}</div>
+                            </td>
+                            <td class="py-3 px-4 font-mono font-medium text-slate-600">${escapeHtml(s.student_id || 'N/A')}</td>
+                            <td class="py-3 px-4">${accountBadge}</td>
+                            <td class="py-3 px-4">${cvBadge}</td>
+                            <td class="py-3 px-4 text-slate-500">${regDate}</td>
+                            <td class="py-3 px-4 text-slate-500">${upDate}</td>
+                            <td class="py-3 px-4 text-right space-x-1.5">
+                                <button onclick="viewStudentCv(${s.id})" title="View CV Preview" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-xs transition">
+                                    <i class="fa-solid fa-eye mr-1"></i>View CV
+                                </button>
+                                <button onclick="toggleStudentStatus(${s.id}, '${s.account_status === 'active' ? 'inactive' : 'active'}')" title="${s.account_status === 'active' ? 'Deactivate Account' : 'Activate Account'}" class="px-2.5 py-1 ${s.account_status === 'active' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} font-semibold rounded-lg text-xs transition">
+                                    ${s.account_status === 'active' ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <button onclick="deleteStudent(${s.id}, '${escapeHtml(s.name)}')" title="Delete Student" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-xs transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // View Student CV in Modal
+        async function viewStudentCv(id) {
+            try {
+                const res = await fetch(`/api/admin/students/${id}`, {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (!res.ok) {
+                    alert('Could not retrieve student CV.');
+                    return;
+                }
+
+                currentModalCvData = await res.json();
+                document.getElementById('modal-student-name').textContent = `${currentModalCvData.user.name}'s CV Preview`;
+                document.getElementById('admin-cv-paper').innerHTML = renderCvDocument(currentModalCvData);
+                const modal = document.getElementById('admin-view-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } catch (err) {
+                alert('Error loading student CV.');
+            }
+        }
+
+        function closeAdminModal() {
+            const modal = document.getElementById('admin-view-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentModalCvData = null;
+        }
+
+        function printAdminCv() {
+            window.print();
+        }
+
+        async function downloadStudentPdf() {
+            if (!currentModalCvData) return;
+            const pInfo = currentModalCvData.personal_info || (currentModalCvData.user ? { name: currentModalCvData.user.name } : {});
+            const studentName = (pInfo.name || 'Student').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const filename = `${studentName}_CV.pdf`;
+
+            const slot = document.getElementById('pdf-render-slot');
+            slot.innerHTML = `
+                <div class="cv-document" style="box-shadow: none; margin: 0; padding: 16mm 18mm; width: 210mm; min-height: auto;">
+                    ${renderCvDocument(currentModalCvData)}
+                </div>
+            `;
+
+            const targetElement = slot.firstElementChild;
+
+            // Wait for passport photo and all images to be fully loaded
+            const imgs = Array.from(targetElement.querySelectorAll('img'));
+            await Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }));
+
+            const opt = {
+                margin:       0,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css'] }
+            };
+
+            try {
+                await html2pdf().set(opt).from(targetElement).save();
+            } catch (err) {
+                console.error('PDF export error:', err);
+            } finally {
+                slot.innerHTML = '';
+            }
+        }
+
+        // Toggle Status
+        async function toggleStudentStatus(id, newStatus) {
+            if (!confirm(`Are you sure you want to change this student account to ${newStatus}?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/students/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Auth.getToken()}`
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (res.ok) {
+                    fetchStudents();
+                    fetchStats();
+                } else {
+                    alert('Failed to update status.');
+                }
+            } catch (err) {
+                alert('Error updating student status.');
+            }
+        }
+
+        // Delete Student
+        async function deleteStudent(id, name) {
+            if (!confirm(`CAUTION: Are you sure you want to permanently delete student "${name}"? This action cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/students/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (res.ok) {
+                    fetchStudents();
+                    fetchStats();
+                } else {
+                    alert('Failed to delete student.');
+                }
+            } catch (err) {
+                alert('Error deleting student.');
+            }
+        }
+
+        function formatCefrDisplay(val) {
+            if (!val || val === '-') return '-';
+            const m = val.match(/\((.*?)\)/);
+            if (m) return m[1];
+            return val;
+        }
+
+        // Shared Render function matching CV formate.pdf
+        function renderCvDocument(data) {
+            const p = data.personal_info || {};
+            const about = data.about_me || '';
+            const edu = data.education || [];
+            const exp = data.experience || [];
+            const skills = data.skills || [];
+            const langs = data.languages || [];
+            const digSkills = data.digital_skills || [];
+            const hobbies = data.hobbies || [];
+            const references = data.references || [];
+
+            let html = '';
+
+            // 1. TOP HEADER: Photo on Left (Passport Size 35x45mm), Name & Contact Info on Right
+            html += `<div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid;">`;
+            
+            if (p.photo_url) {
+                html += `
+                <div style="flex-shrink: 0; width: 35mm; height: 45mm;">
+                    <img src="${p.photo_url}" class="cv-passport-photo" alt="Passport Photo">
+                </div>
+                `;
+            }
+
+            html += `<div style="flex-grow: 1;">`;
+            html += `  <div class="cv-name">${escapeHtml(p.name || 'Student Name')}</div>`;
+            html += `  <hr class="cv-header-rule">`;
+            html += `  <div class="cv-contact-row">`;
+            if (p.nationality) html += `<div><span class="cv-contact-label">Nationality:</span> ${escapeHtml(p.nationality)}</div>`;
+            if (p.phone) html += `<div><span class="cv-contact-label">Phone number:</span> ${escapeHtml(p.phone)}</div>`;
+            if (p.linkedin) {
+                const lk = escapeHtml(p.linkedin);
+                const href = lk.startsWith('http') ? lk : 'https://' + lk;
+                html += `<div><span class="cv-contact-label">LinkedIn:</span> <a href="${href}" target="_blank" style="color: #2b6cb0; text-decoration: underline;">${lk}</a></div>`;
+            }
+            if (p.address) html += `<div><span class="cv-contact-label">Address:</span> ${escapeHtml(p.address)}</div>`;
+            if (p.email) html += `<div><span class="cv-contact-label">Email address:</span> <a href="mailto:${escapeHtml(p.email)}" style="color: #2b6cb0; text-decoration: underline;">${escapeHtml(p.email)}</a></div>`;
+            html += `  </div>`;
+            html += `</div>`;
+            html += `</div>`;
+
+            // 2. About Me (Under Contact Details)
+            if (about.trim()) {
+                html += `
+                <div style="margin-top: 8px; margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid;">
+                    <div style="font-weight: 700; font-size: 10.5pt; color: #1a202c; margin-bottom: 3px;">About me:</div>
+                    <div style="font-size: 9.5pt; color: #2d3748; line-height: 1.5; text-align: justify;">${escapeHtml(about)}</div>
+                </div>
+                `;
+            }
+
+            // 3. Education
+            if (edu.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">EDUCATION</div>
+                    </div>
+                `;
+                edu.forEach(item => {
+                    html += `
+                    <div class="cv-entry-block">
+                        <div class="cv-entry-title">${escapeHtml(item.qualification)}${item.specialization ? ' – Specialization in ' + escapeHtml(item.specialization) : ''}</div>
+                        ${(item.start_year || item.result) ? `
+                        <div class="cv-entry-meta">${escapeHtml(item.start_year || '')}${item.start_year && item.result ? ' | ' : ''}${escapeHtml(item.result || '')}</div>
+                        ` : ''}
+                        ${item.institution ? `
+                        <div class="cv-entry-subtext">${escapeHtml(item.institution)}${item.location ? ', ' + escapeHtml(item.location) : ''}</div>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // 4. Work Experience
+            if (exp.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">WORK EXPERIENCE</div>
+                    </div>
+                `;
+                exp.forEach(item => {
+                    html += `
+                    <div class="cv-entry-block">
+                        <div class="cv-entry-title">${escapeHtml(item.job_title)}${item.organization ? ' | ' + escapeHtml(item.organization) : ''}${item.location ? ', ' + escapeHtml(item.location) : ''}</div>
+                        ${item.start_date ? `<div class="cv-entry-subtext" style="font-weight: 500; margin-bottom: 3px;">${escapeHtml(item.start_date)}</div>` : ''}
+                        ${(item.responsibilities && item.responsibilities.length > 0) ? `
+                        <ul class="cv-entry-bullets">
+                            ${item.responsibilities.map(r => r && r.trim() ? `<li>${escapeHtml(r)}</li>` : '').join('')}
+                        </ul>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // 5. Skills
+            if (skills.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">SKILLS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${skills.map(s => `<li>${escapeHtml(s.proficiency ? s.skill_name + ' – ' + s.proficiency : s.skill_name)}</li>`).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 6. Language (No forced page-break - flows naturally)
+            if (langs.length > 0) {
+                const motherTongues = langs.filter(l => l.is_mother_tongue).map(l => l.language);
+                const others = langs.filter(l => !l.is_mother_tongue);
+
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">LANGUAGE</div>
+                    </div>
+                `;
+                if (motherTongues.length > 0) {
+                    html += `<div style="font-size: 9.5pt; margin-top: 6px; margin-bottom: 4px;">Mother tongue(s): <strong>${escapeHtml(motherTongues.join(', '))}</strong></div>`;
+                }
+                if (others.length > 0) {
+                    html += `
+                    <div style="font-size: 9pt; margin-top: 4px; margin-bottom: 4px; color: #475569;">Other language(s):</div>
+                    <table class="cv-lang-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 20%; text-align: left; padding-left: 8px;">Language</th>
+                                <th colspan="2">UNDERSTANDING</th>
+                                <th colspan="2">SPEAKING</th>
+                                <th rowspan="2" style="vertical-align: middle;">WRITING</th>
+                            </tr>
+                            <tr>
+                                <th>Listening</th>
+                                <th>Reading</th>
+                                <th>Spoken prod.</th>
+                                <th>Spoken inter.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${others.map(o => `
+                            <tr>
+                                <td>${escapeHtml(o.language)}</td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.listening))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.reading))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.spoken_production))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.spoken_interaction))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.writing))}</span></td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            // 7. Digital Skills
+            if (digSkills.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">DIGITAL SKILLS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${digSkills.map(d => `
+                        <li>${d.description ? `<strong>${escapeHtml(d.skill)}</strong> – ${escapeHtml(d.description)}` : `<strong>${escapeHtml(d.skill)}</strong>`}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 8. Hobbies and Interests
+            if (hobbies.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">HOBBIES AND INTERESTS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${hobbies.map(h => `<li>${escapeHtml(h.hobby)}</li>`).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 9. References (Optional - At the very end)
+            if (references.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">REFERENCES</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 6px;">
+                `;
+                references.forEach(r => {
+                    html += `
+                    <div class="cv-entry-block" style="margin-bottom: 4px; padding: 6px 10px; background: #f8fafc; border-left: 2.5px solid #475569; border-radius: 2px;">
+                        <div class="cv-entry-title" style="font-size: 9.8pt; font-weight: 700; color: #0f172a;">${escapeHtml(r.name)}</div>
+                        ${(r.designation || r.organization) ? `
+                        <div class="cv-entry-subtext" style="font-size: 8.8pt; font-weight: 600; color: #334155; margin-top: 2px;">
+                            ${escapeHtml(r.designation || '')}${r.designation && r.organization ? ' — ' : ''}${escapeHtml(r.organization || '')}
+                        </div>
+                        ` : ''}
+                        <div style="font-size: 8.5pt; color: #475569; margin-top: 3px; line-height: 1.45;">
+                            ${r.email ? `<div><span style="font-weight: 600; color: #1e293b;">Email:</span> <a href="mailto:${escapeHtml(r.email)}" style="color: #2563eb; text-decoration: underline;">${escapeHtml(r.email)}</a></div>` : ''}
+                            ${r.phone ? `<div><span style="font-weight: 600; color: #1e293b;">Phone:</span> ${escapeHtml(r.phone)}</div>` : ''}
+                        </div>
+                    </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            return html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Live filters
+        document.getElementById('search-input').addEventListener('input', () => fetchStudents());
+        document.getElementById('status-filter').addEventListener('change', () => fetchStudents());
+
+        // Initialize on load
+        fetchStats();
+        fetchStudents();
+    </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration — CV Builder Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-3">
+                <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-sm">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <span class="text-lg font-bold text-slate-900">CV Portal</span>
+            </a>
+            <a href="/login.html" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+                Already registered? Sign In
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 p-8 sm:p-10">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mx-auto text-xl mb-3">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Create Student Account</h2>
+                <p class="text-sm text-slate-500 mt-1">Register to start building your verified university CV</p>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="error-alert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start space-x-3">
+                <i class="fa-solid fa-circle-exclamation mt-0.5 text-red-500"></i>
+                <span id="error-message">Error message</span>
+            </div>
+
+            <!-- Success Banner -->
+            <div id="success-alert" class="hidden mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-start space-x-3">
+                <i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i>
+                <span id="success-message">Account created successfully! Taking you to your dashboard...</span>
+            </div>
+
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Full Name <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </span>
+                        <input type="text" id="name" required placeholder="Enter your full name"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Email Address <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-envelope text-sm"></i>
+                        </span>
+                        <input type="email" id="email" required autocomplete="email" placeholder="student@university.edu"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="student_id" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Student ID / Registration No. <span class="text-slate-400 font-normal text-[11px]">(Optional)</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-id-card text-sm"></i>
+                        </span>
+                        <input type="text" id="student_id" placeholder="e.g. 2024-UE-1234"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Password <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </span>
+                            <input type="password" id="password" required autocomplete="new-password" placeholder="Min. 6 chars" minlength="6"
+                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="confirm_password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Confirm Password <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i class="fa-solid fa-shield text-sm"></i>
+                            </span>
+                            <input type="password" id="confirm_password" required autocomplete="new-password" placeholder="Repeat password" minlength="6"
+                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="submit-btn"
+                        class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition flex items-center justify-center space-x-2">
+                        <span id="btn-text">Complete Registration</span>
+                        <i class="fa-solid fa-check text-xs"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Student CV Builder & Admin Portal. All rights reserved.</p>
+    </footer>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        const form = document.getElementById('register-form');
+        const errorAlert = document.getElementById('error-alert');
+        const errorMessage = document.getElementById('error-message');
+        const successAlert = document.getElementById('success-alert');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorAlert.classList.add('hidden');
+            successAlert.classList.add('hidden');
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const student_id = document.getElementById('student_id').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm_password = document.getElementById('confirm_password').value;
+
+            if (password !== confirm_password) {
+                errorMessage.textContent = 'Passwords do not match. Please verify.';
+                errorAlert.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorMessage.textContent = 'Password must be at least 6 characters.';
+                errorAlert.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            btnText.textContent = 'Creating account...';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, student_id, password, confirm_password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorMessage.textContent = data.error || 'Registration failed.';
+                    errorAlert.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Complete Registration';
+                    return;
+                }
+
+                // Auto login on successful registration
+                Auth.setToken(data.token);
+                Auth.setUser(data.user);
+
+                successAlert.classList.remove('hidden');
+
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 900);
+
+            } catch (err) {
+                console.error(err);
+                errorMessage.textContent = 'Network or server error occurred.';
+                errorAlert.classList.remove('hidden');
+                submitBtn.disabled = false;
+                btnText.textContent = 'Complete Registration';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard — CV Builder Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2">
+                    <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-sm">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <span class="text-lg font-bold text-slate-900 hidden sm:inline">CV Portal</span>
+                </a>
+                <span class="text-slate-300">|</span>
+                <span class="text-xs sm:text-sm font-semibold text-slate-600">Student Dashboard</span>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <div class="text-right hidden md:block">
+                    <span id="user-display-name" class="text-sm font-bold text-slate-800 block leading-tight">Student</span>
+                    <span id="user-display-email" class="text-xs text-slate-500">student@university.edu</span>
+                </div>
+                <button onclick="Auth.logout()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:text-red-600 hover:border-red-200 bg-white hover:bg-red-50 transition shadow-sm">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="hidden sm:inline">Log Out</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 no-print">
+
+        <!-- Top Action Bar & Status Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-2xl font-extrabold text-slate-900">My Curriculum Vitae</h1>
+                    <span id="cv-status-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                        Not Created
+                    </span>
+                </div>
+                <p id="cv-last-saved" class="text-xs text-slate-500 mt-1">Last saved: Never</p>
+            </div>
+
+            <!-- Dashboard Actions -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="saveCv(true)" id="btn-save-draft" class="inline-flex items-center space-x-1.5 px-4 py-2 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
+                    <i class="fa-regular fa-floppy-disk text-slate-500"></i>
+                    <span>Save Draft</span>
+                </button>
+                <button onclick="saveCv(false)" id="btn-finalize" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Mark as Completed</span>
+                </button>
+                <button onclick="openPreviewModal()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>CV Preview</span>
+                </button>
+                <button onclick="downloadCvPdf()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Download PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="status-toast" class="hidden mb-6 p-4 rounded-xl text-sm flex items-center justify-between shadow-sm transition">
+            <div class="flex items-center space-x-2">
+                <i id="status-toast-icon" class="fa-solid fa-circle-check"></i>
+                <span id="status-toast-msg">Changes saved successfully.</span>
+            </div>
+            <button onclick="document.getElementById('status-toast').classList.add('hidden')" class="text-xs font-bold">&times;</button>
+        </div>
+
+        <!-- Main Form Section -->
+        <form id="cv-form" onsubmit="event.preventDefault();" class="space-y-8">
+
+            <!-- 1. PERSONAL INFORMATION -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-user-circle text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">1. Personal Information</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">Basic contact & personal details</span>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Full Name</label>
+                        <input type="text" id="pi-name" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter your full name">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nationality</label>
+                        <input type="text" id="pi-nationality" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter nationality">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Phone Number</label>
+                        <input type="text" id="pi-phone" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter phone number">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Email Address</label>
+                        <input type="email" id="pi-email" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter email address">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Address</label>
+                        <input type="text" id="pi-address" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter address / city">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">LinkedIn Profile (Optional)</label>
+                        <input type="text" id="pi-linkedin" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="LinkedIn profile URL">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Profile Photo (Passport Size)</span>
+                            <span class="text-[11px] text-indigo-600 font-semibold normal-case flex items-center space-x-1">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>35 × 45 mm • 7:9 Ratio • 300 DPI</span>
+                            </span>
+                        </label>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-5 p-5 rounded-xl border border-slate-200 bg-slate-50/80">
+                            <!-- Passport Photo Frame (Standard 35mm x 45mm, 7:9 ratio) -->
+                            <div class="relative w-28 h-36 rounded-lg border-2 border-slate-300 bg-white flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0 group">
+                                <div id="photo-placeholder-box" class="text-center p-2">
+                                    <i class="fa-solid fa-user text-slate-300 text-3xl"></i>
+                                    <span class="block text-[10px] text-slate-400 font-semibold mt-1">35 × 45 mm</span>
+                                    <span class="block text-[9px] text-slate-400 font-medium">Passport Size</span>
+                                </div>
+                                <img id="photo-preview-img" class="w-full h-full object-cover hidden" alt="Passport Photo" style="aspect-ratio: 7/9; object-fit: cover; object-position: center top;">
+                                
+                                <!-- Loading overlay -->
+                                <div id="photo-loading-overlay" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs hidden flex flex-col items-center justify-center text-white text-xs">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-lg mb-1"></i>
+                                    <span class="text-[10px] font-semibold">Processing...</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2.5 flex-grow">
+                                <div>
+                                    <input type="file" id="pi-photo-input" accept="image/jpeg,image/png,image/jpg" class="text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+                                </div>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">
+                                    <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>Supports <strong>JPG, JPEG, PNG</strong>. Auto-crops into official <strong>Passport Size (35 × 45 mm, 7:9 ratio, 300 DPI)</strong> with interactive zoom, drag, and face positioning.
+                                </p>
+                                <div id="photo-action-buttons" class="hidden flex items-center space-x-3 pt-1">
+                                    <button type="button" onclick="openPhotoCropModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition border border-slate-300 shadow-xs">
+                                        <i class="fa-solid fa-crop-simple text-indigo-600"></i>
+                                        <span>Adjust / Re-crop</span>
+                                    </button>
+                                    <button type="button" onclick="removePhoto()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition border border-red-200 shadow-xs">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                        <span>Remove Photo</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ABOUT ME -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-comment-dots text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">2. About Me</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">Professional summary statement</span>
+                </div>
+                <div class="p-6">
+                    <textarea id="about-me" rows="4" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed" placeholder="Write a short summary about your background, career focus, and strengths..."></textarea>
+                </div>
+            </div>
+
+            <!-- 3. EDUCATION -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-graduation-cap text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">3. Education</h2>
+                    </div>
+                    <button type="button" onclick="addEducationCard()" class="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Education</span>
+                    </button>
+                </div>
+                <div id="education-container" class="p-6 space-y-4">
+                    <!-- Dynamic education cards inserted here -->
+                </div>
+            </div>
+
+            <!-- 4. WORK EXPERIENCE -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-briefcase text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">4. Work Experience</h2>
+                    </div>
+                    <button type="button" onclick="addExperienceCard()" class="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Experience</span>
+                    </button>
+                </div>
+                <div id="experience-container" class="p-6 space-y-4">
+                    <!-- Dynamic experience cards inserted here -->
+                </div>
+            </div>
+
+            <!-- 5. SKILLS -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">5. Skills</h2>
+                    </div>
+                    <button type="button" onclick="addSkillRow()" class="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Skill</span>
+                    </button>
+                </div>
+                <div id="skills-container" class="p-6 space-y-3">
+                    <!-- Dynamic skills inserted here -->
+                </div>
+            </div>
+
+            <!-- 6. LANGUAGE -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-language text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">6. Language</h2>
+                    </div>
+                    <button type="button" onclick="addLanguageRow()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition shadow-xs">
+                        <i class="fa-solid fa-plus text-[11px]"></i>
+                        <span>+ Add Another Language</span>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Mother tongue(s)</label>
+                        <input type="text" id="lang-mother-tongue" class="w-full max-w-md px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter your native language (e.g. Urdu, English)">
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">Other language(s)</h3>
+                        <div id="languages-container" class="space-y-4">
+                            <!-- Dynamic language entries inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. DIGITAL SKILLS -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-laptop-code text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">7. Digital Skills</h2>
+                    </div>
+                    <button type="button" onclick="addDigitalSkillRow()" class="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Digital Skill</span>
+                    </button>
+                </div>
+                <div id="digital-skills-container" class="p-6 space-y-3">
+                    <!-- Dynamic digital skills inserted here -->
+                </div>
+            </div>
+
+            <!-- 8. HOBBIES AND INTERESTS -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-heart text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">8. Hobbies and Interests</h2>
+                    </div>
+                    <button type="button" onclick="addHobbyRow()" class="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Hobby / Interest</span>
+                    </button>
+                </div>
+                <div id="hobbies-container" class="p-6 space-y-3">
+                    <!-- Dynamic hobbies inserted here -->
+                </div>
+            </div>
+
+            <!-- 9. REFERENCES (OPTIONAL - AT THE VERY END) -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-user-check text-indigo-600 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-900">9. References (Optional)</h2>
+                    </div>
+                    <button type="button" onclick="addReferenceRow()" class="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>+ Add Reference</span>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <p class="text-xs text-slate-500 mb-4">Add academic or professional references. All fields are completely optional. If left empty, this section will not appear on your CV.</p>
+                    <div id="references-container" class="space-y-4">
+                        <!-- Dynamic references inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Floating Action Bar -->
+            <div class="pt-4 flex items-center justify-end space-x-3">
+                <button type="button" onclick="saveCv(true)" class="px-6 py-3 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
+                    Save Draft
+                </button>
+                <button type="button" onclick="saveCv(false)" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition">
+                    Mark as Completed & Save
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <!-- LIVE CV PREVIEW MODAL (Full-Screen Document Desk - Strictly Centered) -->
+    <div id="preview-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex flex-col no-print">
+        <!-- Top Toolbar -->
+        <div class="preview-toolbar bg-slate-900 border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between text-white flex-shrink-0 z-20 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-file-invoice text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2.5">
+                        <h3 class="font-bold text-white text-sm sm:text-base tracking-tight">CV Document Preview</h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Standard A4 (210 × 297 mm)</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Pixel-perfect European layout • Center-aligned executive format</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button type="button" onclick="printCv()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-sm">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Print / Browser PDF</span>
+                </button>
+                <button type="button" onclick="downloadCvPdf()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-md hover:shadow-indigo-500/25">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download PDF</span>
+                </button>
+                <button type="button" onclick="closePreviewModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition border border-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Desk Canvas - STRICTLY HORIZONTALLY & VERTICALLY CENTERED -->
+        <div class="flex-1 overflow-y-auto overflow-x-auto py-10 px-4 flex justify-center items-start bg-slate-900/90">
+            <div id="cv-paper-target" class="cv-document mx-auto flex-shrink-0">
+                <!-- Populated dynamically by renderCvDocument() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSPORT PHOTO STUDIO / CROP MODAL (Standard: 35mm x 45mm, 7:9 ratio, 300 DPI: 413x531 px) -->
+    <div id="crop-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                        <i class="fa-solid fa-id-badge text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Passport Size Photo Studio</h3>
+                        <p class="text-[11px] text-slate-400">35mm × 45mm (7:9 ratio • 300 DPI: 413 × 531 px)</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closePhotoCropModal()" class="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Crop Canvas Stage -->
+            <div class="p-5 bg-slate-100 flex flex-col items-center select-none">
+                <!-- Frame with Passport Guide Overlay (280px x 360px matches 7:9 ratio) -->
+                <div class="relative rounded-lg shadow-md border-2 border-indigo-600 bg-white overflow-hidden cursor-grab active:cursor-grabbing" style="width: 280px; height: 360px;" id="crop-canvas-wrapper">
+                    <canvas id="crop-canvas" width="280" height="360" class="block w-full h-full bg-white"></canvas>
+                    
+                    <!-- Passport Guideline Overlay -->
+                    <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+                        <!-- Head guide oval -->
+                        <div class="border-2 border-dashed border-indigo-500/70 rounded-[50%] w-[150px] h-[190px] -mt-5 flex items-center justify-center">
+                            <span class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest bg-white/85 px-1.5 py-0.5 rounded shadow-xs">Face Area</span>
+                        </div>
+                        <div class="absolute bottom-3 text-[10px] font-semibold text-slate-700 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full shadow-xs border border-slate-200">
+                            <i class="fa-solid fa-arrows-up-down-left-right mr-1.5 text-indigo-600"></i>Drag photo to position face
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Controls (Zoom, Rotate, Reset) -->
+                <div class="w-full max-w-xs mt-4 space-y-3">
+                    <!-- Zoom Slider -->
+                    <div>
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1">
+                            <span class="flex items-center space-x-1.5">
+                                <i class="fa-solid fa-magnifying-glass text-indigo-600"></i>
+                                <span>Zoom Adjustment</span>
+                            </span>
+                            <span id="crop-zoom-label" class="text-indigo-600 font-bold">100%</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="adjustCropZoom(-0.1)" class="w-8 h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold transition shadow-xs">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <input type="range" id="crop-zoom-slider" min="0.4" max="3.5" step="0.05" value="1" class="flex-grow accent-indigo-600 cursor-pointer">
+                            <button type="button" onclick="adjustCropZoom(0.1)" class="w-8 h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold transition shadow-xs">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Tools (Rotate, Center/Reset) -->
+                    <div class="flex items-center justify-center space-x-2 pt-1">
+                        <button type="button" onclick="rotateCropImage()" class="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 shadow-xs">
+                            <i class="fa-solid fa-rotate-right text-indigo-600"></i>
+                            <span>Rotate 90°</span>
+                        </button>
+                        <button type="button" onclick="resetCropPosition()" class="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 shadow-xs">
+                            <i class="fa-solid fa-arrows-to-dot text-indigo-600"></i>
+                            <span>Center Face</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+                <button type="button" onclick="closePhotoCropModal()" class="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition">
+                    Cancel
+                </button>
+                <button type="button" id="crop-save-btn" onclick="applyAndSaveCrop()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-md hover:shadow-indigo-500/25">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Apply & Save Passport Photo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dedicated off-screen slot for pristine A4 PDF generation (no negative coordinates) -->
+    <div id="pdf-render-slot" style="position: absolute; left: 0; top: 0; z-index: -9999; pointer-events: none;"></div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // Check authentication
+        Auth.requireAuth('student');
+        const currentUser = Auth.getUser();
+
+        if (currentUser) {
+            document.getElementById('user-display-name').textContent = currentUser.name || 'Student';
+            document.getElementById('user-display-email').textContent = currentUser.email || '';
+            document.getElementById('pi-name').value = currentUser.name || '';
+            document.getElementById('pi-email').value = currentUser.email || '';
+        }
+
+        let uploadedPhotoUrl = '';
+        let cropSourceImg = null;
+        let cropScale = 1;
+        let initialCropScale = 1;
+        let cropRotation = 0;
+        let cropPosX = 0;
+        let cropPosY = 0;
+        let isDraggingCrop = false;
+        let dragStartMouseX = 0;
+        let dragStartMouseY = 0;
+
+        // Open the Interactive Passport Photo Cropper Modal
+        function openPhotoCropModal(imageSource) {
+            const src = imageSource || uploadedPhotoUrl;
+            if (!src) {
+                document.getElementById('pi-photo-input').click();
+                return;
+            }
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                cropSourceImg = img;
+                // Calculate base scale so image fills the 280 x 360 px canvas (7:9 ratio)
+                initialCropScale = Math.max(280 / img.width, 360 / img.height);
+                cropScale = initialCropScale;
+                cropRotation = 0;
+                cropPosX = 0;
+                // Position crop slightly higher to keep face centered inside guideline oval
+                cropPosY = 0;
+
+                const slider = document.getElementById('crop-zoom-slider');
+                slider.min = (initialCropScale * 0.4).toFixed(3);
+                slider.max = (initialCropScale * 3.5).toFixed(3);
+                slider.step = (initialCropScale * 0.05).toFixed(3);
+                slider.value = cropScale.toFixed(3);
+
+                renderCropperCanvas();
+
+                const modal = document.getElementById('crop-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            };
+            img.onerror = () => {
+                showToast('Failed to load image for cropping.', 'error');
+            };
+            img.src = src;
+        }
+
+        function closePhotoCropModal() {
+            const modal = document.getElementById('crop-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('pi-photo-input').value = '';
+        }
+
+        // Draw interactive preview canvas
+        function renderCropperCanvas() {
+            if (!cropSourceImg) return;
+            const canvas = document.getElementById('crop-canvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // Fill white background by default (ideal for passport standard and transparent PNGs)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 280, 360);
+
+            ctx.save();
+            ctx.translate(140 + cropPosX, 180 + cropPosY);
+            ctx.rotate((cropRotation * Math.PI) / 180);
+            ctx.scale(cropScale, cropScale);
+            ctx.drawImage(cropSourceImg, -cropSourceImg.width / 2, -cropSourceImg.height / 2);
+            ctx.restore();
+
+            // Update zoom label & slider
+            const pct = Math.round((cropScale / initialCropScale) * 100);
+            document.getElementById('crop-zoom-label').textContent = `${pct}%`;
+            document.getElementById('crop-zoom-slider').value = cropScale;
+        }
+
+        function adjustCropZoom(delta) {
+            const slider = document.getElementById('crop-zoom-slider');
+            let next = cropScale + (initialCropScale * delta);
+            next = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), next));
+            cropScale = next;
+            renderCropperCanvas();
+        }
+
+        function rotateCropImage() {
+            cropRotation = (cropRotation + 90) % 360;
+            renderCropperCanvas();
+        }
+
+        function resetCropPosition() {
+            cropScale = initialCropScale;
+            cropPosX = 0;
+            cropPosY = 0;
+            cropRotation = 0;
+            renderCropperCanvas();
+        }
+
+        // Setup mouse, touch, and wheel drag controls on the crop canvas
+        (function initCropInteractions() {
+            const wrapper = document.getElementById('crop-canvas-wrapper');
+            if (!wrapper) return;
+
+            // Mouse Drag
+            wrapper.addEventListener('mousedown', (e) => {
+                isDraggingCrop = true;
+                dragStartMouseX = e.clientX - cropPosX;
+                dragStartMouseY = e.clientY - cropPosY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingCrop) return;
+                cropPosX = e.clientX - dragStartMouseX;
+                cropPosY = e.clientY - dragStartMouseY;
+                renderCropperCanvas();
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDraggingCrop = false;
+            });
+
+            // Touch Drag (Mobile & Tablets)
+            wrapper.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDraggingCrop = true;
+                    dragStartMouseX = e.touches[0].clientX - cropPosX;
+                    dragStartMouseY = e.touches[0].clientY - cropPosY;
+                }
+            }, { passive: true });
+
+            wrapper.addEventListener('touchmove', (e) => {
+                if (!isDraggingCrop || e.touches.length !== 1) return;
+                cropPosX = e.touches[0].clientX - dragStartMouseX;
+                cropPosY = e.touches[0].clientY - dragStartMouseY;
+                renderCropperCanvas();
+            }, { passive: true });
+
+            wrapper.addEventListener('touchend', () => {
+                isDraggingCrop = false;
+            });
+
+            // Mouse Wheel Zoom
+            wrapper.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.08 : -0.08;
+                adjustCropZoom(delta);
+            }, { passive: false });
+
+            // Slider input
+            const slider = document.getElementById('crop-zoom-slider');
+            slider.addEventListener('input', function() {
+                cropScale = parseFloat(this.value);
+                renderCropperCanvas();
+            });
+        })();
+
+        // Apply Crop, export high-res 300 DPI passport image (413 x 531 px) and upload
+        async function applyAndSaveCrop() {
+            if (!cropSourceImg) return;
+
+            const saveBtn = document.getElementById('crop-save-btn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>Saving...</span>`;
+
+            try {
+                // High-resolution print canvas: 35mm x 45mm @ 300 DPI (413 x 531 pixels, 7:9 ratio)
+                const exportWidth = 413;
+                const exportHeight = 531;
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = exportWidth;
+                exportCanvas.height = exportHeight;
+                const eCtx = exportCanvas.getContext('2d');
+
+                eCtx.imageSmoothingEnabled = true;
+                eCtx.imageSmoothingQuality = 'high';
+
+                // Fill crisp white background by default
+                eCtx.fillStyle = '#ffffff';
+                eCtx.fillRect(0, 0, exportWidth, exportHeight);
+
+                // Scale factor between 280x360 preview and 413x531 export
+                const ratio = exportWidth / 280;
+
+                eCtx.save();
+                eCtx.translate(exportWidth / 2 + cropPosX * ratio, exportHeight / 2 + cropPosY * ratio);
+                eCtx.rotate((cropRotation * Math.PI) / 180);
+                eCtx.scale(cropScale * ratio, cropScale * ratio);
+                eCtx.drawImage(cropSourceImg, -cropSourceImg.width / 2, -cropSourceImg.height / 2);
+                eCtx.restore();
+
+                exportCanvas.toBlob(async (blob) => {
+                    if (!blob) throw new Error('Canvas conversion failed');
+
+                    const formData = new FormData();
+                    formData.append('photo', blob, 'passport-photo-35x45mm.jpg');
+
+                    const res = await fetch('/api/cv/upload-photo', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${Auth.getToken()}` },
+                        body: formData
+                    });
+
+                    const data = await res.json();
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+
+                    if (data.photo_url) {
+                        uploadedPhotoUrl = data.photo_url;
+                        showPhotoPreview(uploadedPhotoUrl);
+                        closePhotoCropModal();
+                        showToast('Passport photo saved successfully! (35 × 45 mm • 300 DPI)', 'success');
+                    } else {
+                        showToast(data.error || 'Failed to upload photo.', 'error');
+                    }
+                }, 'image/jpeg', 0.95);
+
+            } catch (err) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
+                console.error(err);
+                showToast('Failed to process passport photo.', 'error');
+            }
+        }
+
+        // Handle Photo file selection (JPG, JPEG, PNG)
+        document.getElementById('pi-photo-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showToast('Please select a JPG, JPEG, or PNG image file.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                openPhotoCropModal(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function removePhoto() {
+            if (!confirm('Are you sure you want to remove your passport photo?')) return;
+            try {
+                await fetch('/api/cv/remove-photo', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+                uploadedPhotoUrl = '';
+                showPhotoPreview('');
+                document.getElementById('pi-photo-input').value = '';
+                showToast('Passport photo removed.', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to remove photo.', 'error');
+            }
+        }
+
+        function showPhotoPreview(url) {
+            const img = document.getElementById('photo-preview-img');
+            const placeholder = document.getElementById('photo-placeholder-box');
+            const actionBtns = document.getElementById('photo-action-buttons');
+
+            if (url) {
+                img.src = url;
+                img.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                if (actionBtns) actionBtns.classList.remove('hidden');
+            } else {
+                img.src = '';
+                img.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                if (actionBtns) actionBtns.classList.add('hidden');
+            }
+        }
+
+        // Helper to parse CGPA, Marks, or other grading values from saved result string
+        function parseEducationResult(resultStr) {
+            if (!resultStr) return { type: 'cgpa', obtained: '', total: '4.00', grade: '' };
+            
+            let grade = '';
+            // Check for attached grade in parentheses e.g. "(Grade A)" or "(A+)"
+            const gradeParenMatch = resultStr.match(/\((?:Grade\s*)?([A-Za-z0-9\+\-]+)\)/i);
+            if (gradeParenMatch) {
+                grade = gradeParenMatch[1];
+                resultStr = resultStr.replace(/\s*\([^\)]*\)/, '').trim();
+            }
+
+            // Check CGPA pattern e.g. "CGPA: 3.50/4.00" or "CGPA: 3.50"
+            const cgpaMatch = resultStr.match(/CGPA\s*:\s*([\d\.]+)(?:\s*\/\s*([\d\.]+))?/i);
+            if (cgpaMatch) {
+                return { type: 'cgpa', obtained: cgpaMatch[1] || '', total: cgpaMatch[2] || '4.00', grade };
+            }
+            
+            // Check Marks pattern e.g. "Marks: 850/1100" or "850/1100"
+            const marksMatch = resultStr.match(/Marks\s*:\s*(\d+)(?:\s*\/\s*(\d+))?/i);
+            if (marksMatch) {
+                return { type: 'marks', obtained: marksMatch[1] || '', total: marksMatch[2] || '', grade };
+            }
+
+            // Generic slash match e.g. "3.50/4.00" or "850/1100"
+            const slashMatch = resultStr.match(/^([\d\.]+)\s*\/\s*([\d\.]+)$/);
+            if (slashMatch) {
+                const val2 = parseFloat(slashMatch[2]);
+                if (val2 <= 5) {
+                    return { type: 'cgpa', obtained: slashMatch[1], total: slashMatch[2], grade };
+                } else {
+                    return { type: 'marks', obtained: slashMatch[1], total: slashMatch[2], grade };
+                }
+            }
+
+            // Grade only
+            const cleanGrade = resultStr.replace(/^Grade\s*:\s*/i, '').trim();
+            return { type: 'grade', obtained: '', total: '', grade: cleanGrade };
+        }
+
+        function selectGradingTab(id, tabName) {
+            const hiddenType = document.getElementById(`${id}-res-type`);
+            if (hiddenType) hiddenType.value = tabName;
+
+            const tabCgpa = document.getElementById(`${id}-tab-cgpa`);
+            const tabMarks = document.getElementById(`${id}-tab-marks`);
+            const tabGrade = document.getElementById(`${id}-tab-grade`);
+
+            const panelCgpa = document.getElementById(`${id}-cgpa-panel`);
+            const panelMarks = document.getElementById(`${id}-marks-panel`);
+            const panelGrade = document.getElementById(`${id}-grade-panel`);
+
+            const activeClass = 'bg-indigo-600 text-white border-indigo-600 shadow-xs';
+            const inactiveClass = 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50';
+
+            if (tabCgpa) tabCgpa.className = `px-3 py-1 text-xs font-semibold rounded-lg border transition ${tabName === 'cgpa' ? activeClass : inactiveClass}`;
+            if (tabMarks) tabMarks.className = `px-3 py-1 text-xs font-semibold rounded-lg border transition ${tabName === 'marks' ? activeClass : inactiveClass}`;
+            if (tabGrade) tabGrade.className = `px-3 py-1 text-xs font-semibold rounded-lg border transition ${tabName === 'grade' ? activeClass : inactiveClass}`;
+
+            if (panelCgpa) panelCgpa.classList.toggle('hidden', tabName !== 'cgpa');
+            if (panelMarks) panelMarks.classList.toggle('hidden', tabName !== 'marks');
+            if (panelGrade) panelGrade.classList.toggle('hidden', tabName !== 'grade');
+        }
+
+        // Dynamic Card Adders
+        function addEducationCard(data = {}) {
+            const container = document.getElementById('education-container');
+            const id = 'edu-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const parsed = parseEducationResult(data.result || '');
+
+            const div = document.createElement('div');
+            div.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 relative space-y-3';
+            div.id = id;
+            div.innerHTML = `
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 text-sm p-1">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-8">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Degree / Qualification</label>
+                        <input type="text" class="edu-qual w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Bachelor of Science / Intermediate" value="${escapeHtml(data.qualification || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Specialization / Major (Optional)</label>
+                        <input type="text" class="edu-spec w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Computer Science / Business Administration" value="${escapeHtml(data.specialization || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Institute / University</label>
+                        <input type="text" class="edu-inst w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="University, College, or School Name" value="${escapeHtml(data.institution || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Campus / City / Country (Optional)</label>
+                        <input type="text" class="edu-loc w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Lahore, Pakistan" value="${escapeHtml(data.location || '')}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Years (Start - End)</label>
+                        <input type="text" class="edu-years w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. 2020 – 2024" value="${escapeHtml(data.start_year ? (data.start_year + (data.end_year ? ' – ' + data.end_year : '')) : '')}">
+                    </div>
+
+                    <!-- Interactive Result & Grading Section -->
+                    <div class="sm:col-span-2 pt-3 border-t border-slate-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                            <label class="block text-[11px] font-bold text-slate-700">Academic Performance / Result (Optional)</label>
+                            
+                            <!-- Clickable Selectors -->
+                            <div class="flex items-center space-x-1.5 mt-1 sm:mt-0">
+                                <button type="button" onclick="selectGradingTab('${id}', 'cgpa')" id="${id}-tab-cgpa" class="px-3 py-1 text-xs font-semibold rounded-lg border transition ${parsed.type === 'cgpa' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}">
+                                    <i class="fa-solid fa-chart-line mr-1 text-[10px]"></i>CGPA
+                                </button>
+                                <button type="button" onclick="selectGradingTab('${id}', 'marks')" id="${id}-tab-marks" class="px-3 py-1 text-xs font-semibold rounded-lg border transition ${parsed.type === 'marks' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}">
+                                    <i class="fa-solid fa-award mr-1 text-[10px]"></i>Marks
+                                </button>
+                                <button type="button" onclick="selectGradingTab('${id}', 'grade')" id="${id}-tab-grade" class="px-3 py-1 text-xs font-semibold rounded-lg border transition ${parsed.type === 'grade' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}">
+                                    <i class="fa-solid fa-star mr-1 text-[10px]"></i>Grade Only
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" class="edu-res-type" id="${id}-res-type" value="${parsed.type}">
+
+                        <!-- CGPA View: Obtained, Total, and Grade -->
+                        <div id="${id}-cgpa-panel" class="${parsed.type === 'cgpa' ? '' : 'hidden'} grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                            <div>
+                                <span class="block text-[10px] font-bold text-indigo-900 mb-1">Obtained CGPA</span>
+                                <input type="text" class="edu-cgpa-obt w-full px-2.5 py-1.5 bg-white rounded-lg border border-indigo-200 text-xs font-bold text-indigo-900 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. 3.50" value="${escapeHtml(parsed.type === 'cgpa' ? parsed.obtained : '')}">
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-700 mb-1">Total CGPA</span>
+                                <input type="text" class="edu-cgpa-tot w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-300 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. 4.00" value="${escapeHtml(parsed.type === 'cgpa' ? parsed.total : '4.00')}">
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-700 mb-1">Grade (Optional)</span>
+                                <input type="text" class="edu-cgpa-grade w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-300 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. A / Distinction" value="${escapeHtml(parsed.grade || '')}">
+                            </div>
+                        </div>
+
+                        <!-- Marks View: Obtained, Total, and Grade -->
+                        <div id="${id}-marks-panel" class="${parsed.type === 'marks' ? '' : 'hidden'} grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                            <div>
+                                <span class="block text-[10px] font-bold text-indigo-900 mb-1">Obtained Marks</span>
+                                <input type="text" class="edu-marks-obt w-full px-2.5 py-1.5 bg-white rounded-lg border border-indigo-200 text-xs font-bold text-indigo-900 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. 850" value="${escapeHtml(parsed.type === 'marks' ? parsed.obtained : '')}">
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-700 mb-1">Total Marks</span>
+                                <input type="text" class="edu-marks-tot w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-300 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. 1100" value="${escapeHtml(parsed.type === 'marks' ? parsed.total : '')}">
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-700 mb-1">Grade (Optional)</span>
+                                <input type="text" class="edu-marks-grade w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-300 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. A+ / Grade A" value="${escapeHtml(parsed.grade || '')}">
+                            </div>
+                        </div>
+
+                        <!-- Grade Only View -->
+                        <div id="${id}-grade-panel" class="${parsed.type === 'grade' ? '' : 'hidden'} bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                            <span class="block text-[10px] font-bold text-indigo-900 mb-1">Grade / Division / Percentage</span>
+                            <input type="text" class="edu-grade-only w-full px-2.5 py-1.5 bg-white rounded-lg border border-indigo-200 text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Grade A, First Division, or 85%" value="${escapeHtml(parsed.type === 'grade' ? (parsed.grade || '') : '')}">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function addExperienceCard(data = {}) {
+            const container = document.getElementById('experience-container');
+            const id = 'exp-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const div = document.createElement('div');
+            div.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 relative space-y-3';
+            div.id = id;
+
+            let respText = '';
+            if (Array.isArray(data.responsibilities)) {
+                respText = data.responsibilities.join('\n');
+            } else if (data.responsibilities) {
+                respText = data.responsibilities;
+            }
+
+            div.innerHTML = `
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 text-sm p-1">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-8">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Job Title</label>
+                        <input type="text" class="exp-title w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Job title / Position" value="${escapeHtml(data.job_title || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Organization / Company</label>
+                        <input type="text" class="exp-org w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Company or Organization name" value="${escapeHtml(data.organization || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Duration / Dates</label>
+                        <input type="text" class="exp-dates w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Jan 2022 – Present" value="${escapeHtml(data.start_date ? (data.start_date + (data.end_date ? ' – ' + data.end_date : '')) : '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Location (Optional)</label>
+                        <input type="text" class="exp-loc w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="City, Country" value="${escapeHtml(data.location || '')}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Responsibilities / Achievements (One per line)</label>
+                        <textarea rows="3" class="exp-resp w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Key responsibilities and achievements (one per line)">${escapeHtml(respText)}</textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function addSkillRow(data = {}) {
+            const container = document.getElementById('skills-container');
+            const id = 'skill-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-3';
+            div.id = id;
+            div.innerHTML = `
+                <input type="text" class="skill-name flex-grow px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Skill name (e.g. Project Management, Python, MS Office)" value="${escapeHtml(data.skill_name || (typeof data === 'string' ? data : ''))}">
+                <input type="text" class="skill-prof w-40 px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Proficiency (e.g. Advanced)" value="${escapeHtml(data.proficiency || '')}">
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-red-500 p-1">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function getLanguageOptions(selectedVal = '') {
+            const levels = [
+                { value: '', label: 'Select Level' },
+                { value: 'Beginner (A1)', label: 'Beginner (A1)' },
+                { value: 'Elementary (A2)', label: 'Elementary (A2)' },
+                { value: 'Intermediate (B1)', label: 'Intermediate (B1)' },
+                { value: 'Upper Intermediate (B2)', label: 'Upper Intermediate (B2)' },
+                { value: 'Advanced (C1)', label: 'Advanced (C1)' },
+                { value: 'Expert (C2)', label: 'Expert (C2)' },
+                { value: 'Native (Native)', label: 'Native (Native)' }
+            ];
+
+            return levels.map(l => {
+                const isSelected = selectedVal && (
+                    selectedVal === l.value ||
+                    selectedVal.toLowerCase() === l.value.toLowerCase() ||
+                    (l.value && selectedVal.toUpperCase() === l.value.match(/\((.*?)\)/)?.[1])
+                );
+                return `<option value="${l.value}" ${isSelected ? 'selected' : ''}>${l.label}</option>`;
+            }).join('');
+        }
+
+        function addLanguageRow(data = {}) {
+            const container = document.getElementById('languages-container');
+            const id = 'lang-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const div = document.createElement('div');
+            div.className = 'p-5 rounded-2xl border border-slate-200 bg-slate-50/80 shadow-xs relative space-y-4';
+            div.id = id;
+
+            div.innerHTML = `
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-sm p-1 transition" title="Remove Language">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Language Name</label>
+                    <div class="relative max-w-sm">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
+                            <i class="fa-solid fa-language"></i>
+                        </span>
+                        <input type="text" class="lang-title w-full pl-8 pr-3 py-2 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" placeholder="Enter Language Name (e.g., English, Urdu)" value="${escapeHtml(data.language || '')}">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Skill Level Categories</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <!-- Listening -->
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                                <i class="fa-solid fa-headphones text-indigo-500 text-[11px]"></i>
+                                <span>Listening</span>
+                            </div>
+                            <select class="lang-listen w-full py-1.5 px-2 bg-slate-50 rounded-lg border border-slate-300 text-xs text-slate-700 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                ${getLanguageOptions(data.listening || '')}
+                            </select>
+                        </div>
+
+                        <!-- Reading -->
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                                <i class="fa-solid fa-book-open text-indigo-500 text-[11px]"></i>
+                                <span>Reading</span>
+                            </div>
+                            <select class="lang-read w-full py-1.5 px-2 bg-slate-50 rounded-lg border border-slate-300 text-xs text-slate-700 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                ${getLanguageOptions(data.reading || '')}
+                            </select>
+                        </div>
+
+                        <!-- Speaking -->
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                                <i class="fa-solid fa-comment text-indigo-500 text-[11px]"></i>
+                                <span>Speaking</span>
+                            </div>
+                            <select class="lang-spk-prod w-full py-1.5 px-2 bg-slate-50 rounded-lg border border-slate-300 text-xs text-slate-700 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                ${getLanguageOptions(data.spoken_production || '')}
+                            </select>
+                        </div>
+
+                        <!-- Conversation -->
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                                <i class="fa-solid fa-comments text-indigo-500 text-[11px]"></i>
+                                <span>Conversation</span>
+                            </div>
+                            <select class="lang-spk-int w-full py-1.5 px-2 bg-slate-50 rounded-lg border border-slate-300 text-xs text-slate-700 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                ${getLanguageOptions(data.spoken_interaction || '')}
+                            </select>
+                        </div>
+
+                        <!-- Writing -->
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                                <i class="fa-solid fa-pen-to-square text-indigo-500 text-[11px]"></i>
+                                <span>Writing</span>
+                            </div>
+                            <select class="lang-write w-full py-1.5 px-2 bg-slate-50 rounded-lg border border-slate-300 text-xs text-slate-700 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                ${getLanguageOptions(data.writing || '')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function addDigitalSkillRow(data = {}) {
+            const container = document.getElementById('digital-skills-container');
+            const id = 'dig-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const div = document.createElement('div');
+            div.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3';
+            div.id = id;
+            div.innerHTML = `
+                <input type="text" class="dig-title w-full sm:w-1/3 px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Digital skill or software tool" value="${escapeHtml(data.skill || (typeof data === 'string' ? data : ''))}">
+                <input type="text" class="dig-desc flex-grow px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Brief description (optional)" value="${escapeHtml(data.description || '')}">
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-red-500 self-end sm:self-center p-1">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addHobbyRow(data = {}) {
+            const container = document.getElementById('hobbies-container');
+            const id = 'hobby-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-3';
+            div.id = id;
+            div.innerHTML = `
+                <input type="text" class="hobby-name flex-grow px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="Hobby or personal interest" value="${escapeHtml(data.hobby || (typeof data === 'string' ? data : ''))}">
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-red-500 p-1">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        // References Row (Optional)
+        function addReferenceRow(data = {}) {
+            const container = document.getElementById('references-container');
+            const id = 'ref-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const div = document.createElement('div');
+            div.className = 'reference-item p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative transition hover:border-slate-300';
+            div.id = id;
+            div.innerHTML = `
+                <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <span class="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-user-tie text-indigo-600"></i>
+                        <span>Reference</span>
+                    </span>
+                    <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-red-500 p-1 transition" title="Delete Reference">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Full Name</label>
+                        <input type="text" class="ref-name w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Dr. Muhammad Tariq" value="${escapeHtml(data.name || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Designation & Department</label>
+                        <input type="text" class="ref-designation w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. Associate Professor / HoD" value="${escapeHtml(data.designation || '')}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Organization / Institute</label>
+                        <input type="text" class="ref-organization w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. University of Education" value="${escapeHtml(data.organization || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Email Address</label>
+                        <input type="email" class="ref-email w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. tariq@university.edu" value="${escapeHtml(data.email || '')}">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Phone Number</label>
+                        <input type="text" class="ref-phone w-full px-3 py-1.5 bg-white rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none" placeholder="e.g. +92 300 1234567" value="${escapeHtml(data.phone || '')}">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Collect Form Data into structured JSON
+        function gatherFormData() {
+            const personal_info = {
+                name: document.getElementById('pi-name').value.trim(),
+                nationality: document.getElementById('pi-nationality').value.trim(),
+                phone: document.getElementById('pi-phone').value.trim(),
+                email: document.getElementById('pi-email').value.trim(),
+                address: document.getElementById('pi-address').value.trim(),
+                linkedin: document.getElementById('pi-linkedin').value.trim(),
+                photo_url: uploadedPhotoUrl
+            };
+
+            const about_me = document.getElementById('about-me').value.trim();
+
+            const education = [];
+            document.querySelectorAll('#education-container > div').forEach(el => {
+                const qual = el.querySelector('.edu-qual').value.trim();
+                const spec = el.querySelector('.edu-spec').value.trim();
+                const inst = el.querySelector('.edu-inst').value.trim();
+                const loc = el.querySelector('.edu-loc').value.trim();
+                const years = el.querySelector('.edu-years').value.trim();
+                let result = '';
+                const resTypeEl = el.querySelector('.edu-res-type');
+                const resType = resTypeEl ? resTypeEl.value : 'cgpa';
+
+                if (resType === 'cgpa') {
+                    const obt = el.querySelector('.edu-cgpa-obt') ? el.querySelector('.edu-cgpa-obt').value.trim() : '';
+                    const tot = el.querySelector('.edu-cgpa-tot') ? el.querySelector('.edu-cgpa-tot').value.trim() : '4.00';
+                    const grade = el.querySelector('.edu-cgpa-grade') ? el.querySelector('.edu-cgpa-grade').value.trim() : '';
+                    if (obt) {
+                        result = tot ? `CGPA: ${obt}/${tot}` : `CGPA: ${obt}`;
+                        if (grade) result += ` (${grade.toUpperCase().startsWith('GRADE') ? grade : 'Grade ' + grade})`;
+                    } else if (grade) {
+                        result = grade.toUpperCase().startsWith('GRADE') ? grade : `Grade: ${grade}`;
+                    }
+                } else if (resType === 'marks') {
+                    const obt = el.querySelector('.edu-marks-obt') ? el.querySelector('.edu-marks-obt').value.trim() : '';
+                    const tot = el.querySelector('.edu-marks-tot') ? el.querySelector('.edu-marks-tot').value.trim() : '';
+                    const grade = el.querySelector('.edu-marks-grade') ? el.querySelector('.edu-marks-grade').value.trim() : '';
+                    if (obt) {
+                        result = tot ? `Marks: ${obt}/${tot}` : `Marks: ${obt}`;
+                        if (grade) result += ` (${grade.toUpperCase().startsWith('GRADE') ? grade : 'Grade ' + grade})`;
+                    } else if (grade) {
+                        result = grade.toUpperCase().startsWith('GRADE') ? grade : `Grade: ${grade}`;
+                    }
+                } else {
+                    const gradeOnly = el.querySelector('.edu-grade-only') ? el.querySelector('.edu-grade-only').value.trim() : '';
+                    result = gradeOnly;
+                }
+                if (qual || inst) {
+                    education.push({
+                        qualification: qual,
+                        specialization: spec,
+                        institution: inst,
+                        location: loc,
+                        start_year: years,
+                        result: result
+                    });
+                }
+            });
+
+            const experience = [];
+            document.querySelectorAll('#experience-container > div').forEach(el => {
+                const title = el.querySelector('.exp-title').value.trim();
+                const org = el.querySelector('.exp-org').value.trim();
+                const dates = el.querySelector('.exp-dates').value.trim();
+                const loc = el.querySelector('.exp-loc').value.trim();
+                const respRaw = el.querySelector('.exp-resp').value.trim();
+                const respList = respRaw ? respRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+                if (title || org) {
+                    experience.push({
+                        job_title: title,
+                        organization: org,
+                        start_date: dates,
+                        location: loc,
+                        responsibilities: respList
+                    });
+                }
+            });
+
+            const skills = [];
+            document.querySelectorAll('#skills-container > div').forEach(el => {
+                const name = el.querySelector('.skill-name').value.trim();
+                const prof = el.querySelector('.skill-prof').value.trim();
+                if (name) {
+                    skills.push({ skill_name: name, proficiency: prof });
+                }
+            });
+
+            const languages = [];
+            const motherTongue = document.getElementById('lang-mother-tongue').value.trim();
+            if (motherTongue) {
+                languages.push({
+                    language: motherTongue,
+                    is_mother_tongue: 1
+                });
+            }
+
+            document.querySelectorAll('#languages-container > div').forEach(el => {
+                const langTitle = el.querySelector('.lang-title').value.trim();
+                const listen = el.querySelector('.lang-listen').value.trim();
+                const read = el.querySelector('.lang-read').value.trim();
+                const spkProd = el.querySelector('.lang-spk-prod').value.trim();
+                const spkInt = el.querySelector('.lang-spk-int').value.trim();
+                const write = el.querySelector('.lang-write').value.trim();
+                if (langTitle) {
+                    languages.push({
+                        language: langTitle,
+                        is_mother_tongue: 0,
+                        listening: listen,
+                        reading: read,
+                        spoken_production: spkProd,
+                        spoken_interaction: spkInt,
+                        writing: write
+                    });
+                }
+            });
+
+            const digital_skills = [];
+            document.querySelectorAll('#digital-skills-container > div').forEach(el => {
+                const s = el.querySelector('.dig-title').value.trim();
+                const d = el.querySelector('.dig-desc').value.trim();
+                if (s) {
+                    digital_skills.push({ skill: s, description: d });
+                }
+            });
+
+            const hobbies = [];
+            document.querySelectorAll('#hobbies-container > div').forEach(el => {
+                const h = el.querySelector('.hobby-name').value.trim();
+                if (h) {
+                    hobbies.push({ hobby: h });
+                }
+            });
+
+            const references = [];
+            document.querySelectorAll('#references-container > div').forEach(el => {
+                const name = el.querySelector('.ref-name') ? el.querySelector('.ref-name').value.trim() : '';
+                const designation = el.querySelector('.ref-designation') ? el.querySelector('.ref-designation').value.trim() : '';
+                const organization = el.querySelector('.ref-organization') ? el.querySelector('.ref-organization').value.trim() : '';
+                const email = el.querySelector('.ref-email') ? el.querySelector('.ref-email').value.trim() : '';
+                const phone = el.querySelector('.ref-phone') ? el.querySelector('.ref-phone').value.trim() : '';
+                if (name || designation || organization || email || phone) {
+                    references.push({
+                        name: name || 'Reference',
+                        designation,
+                        organization,
+                        email,
+                        phone
+                    });
+                }
+            });
+
+            return {
+                personal_info,
+                about_me,
+                education,
+                experience,
+                skills,
+                languages,
+                digital_skills,
+                hobbies,
+                references
+            };
+        }
+
+        // Save CV API call
+        async function saveCv(isDraft = true) {
+            const payload = gatherFormData();
+            payload.is_draft = isDraft;
+
+            try {
+                const res = await fetch('/api/cv/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Auth.getToken()}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message, 'success');
+                    updateStatusBadge(data.status, new Date().toLocaleTimeString());
+                } else {
+                    showToast(data.error || 'Failed to save CV.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error while saving CV.', 'error');
+            }
+        }
+
+        function updateStatusBadge(status, time) {
+            const badge = document.getElementById('cv-status-badge');
+            badge.textContent = status;
+            if (status === 'Completed') {
+                badge.className = 'px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200';
+            } else if (status === 'Draft') {
+                badge.className = 'px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200';
+            } else {
+                badge.className = 'px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200';
+            }
+            if (time) {
+                document.getElementById('cv-last-saved').textContent = `Last saved: ${time}`;
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('status-toast');
+            const toastMsg = document.getElementById('status-toast-msg');
+            const icon = document.getElementById('status-toast-icon');
+
+            toastMsg.textContent = msg;
+            if (type === 'success') {
+                toast.className = 'mb-6 p-4 rounded-xl text-sm flex items-center justify-between shadow-sm bg-emerald-50 border border-emerald-200 text-emerald-800';
+                icon.className = 'fa-solid fa-circle-check text-emerald-600';
+            } else {
+                toast.className = 'mb-6 p-4 rounded-xl text-sm flex items-center justify-between shadow-sm bg-red-50 border border-red-200 text-red-800';
+                icon.className = 'fa-solid fa-circle-exclamation text-red-600';
+            }
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+
+        function formatCefrDisplay(val) {
+            if (!val || val === '-') return '-';
+            const m = val.match(/\((.*?)\)/);
+            if (m) return m[1];
+            return val;
+        }
+
+        // Render CV HTML exactly matching CV formate.pdf structure
+        function renderCvDocument(data) {
+            const p = data.personal_info || {};
+            const about = data.about_me || '';
+            const edu = data.education || [];
+            const exp = data.experience || [];
+            const skills = data.skills || [];
+            const langs = data.languages || [];
+            const digSkills = data.digital_skills || [];
+            const hobbies = data.hobbies || [];
+            const references = data.references || [];
+
+            let html = '';
+
+            // 1. TOP HEADER: Photo on Left (Passport Size 35x45mm), Name & Contact Info on Right
+            html += `<div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid;">`;
+            
+            if (p.photo_url) {
+                html += `
+                <div style="flex-shrink: 0; width: 35mm; height: 45mm;">
+                    <img src="${p.photo_url}" class="cv-passport-photo" alt="Passport Photo">
+                </div>
+                `;
+            }
+
+            html += `<div style="flex-grow: 1;">`;
+            html += `  <div class="cv-name">${escapeHtml(p.name || 'Student Name')}</div>`;
+            html += `  <hr class="cv-header-rule">`;
+            html += `  <div class="cv-contact-row">`;
+            if (p.nationality) html += `<div><span class="cv-contact-label">Nationality:</span> ${escapeHtml(p.nationality)}</div>`;
+            if (p.phone) html += `<div><span class="cv-contact-label">Phone number:</span> ${escapeHtml(p.phone)}</div>`;
+            if (p.linkedin) {
+                const lk = escapeHtml(p.linkedin);
+                const href = lk.startsWith('http') ? lk : 'https://' + lk;
+                html += `<div><span class="cv-contact-label">LinkedIn:</span> <a href="${href}" target="_blank" style="color: #2b6cb0; text-decoration: underline;">${lk}</a></div>`;
+            }
+            if (p.address) html += `<div><span class="cv-contact-label">Address:</span> ${escapeHtml(p.address)}</div>`;
+            if (p.email) html += `<div><span class="cv-contact-label">Email address:</span> <a href="mailto:${escapeHtml(p.email)}" style="color: #2b6cb0; text-decoration: underline;">${escapeHtml(p.email)}</a></div>`;
+            html += `  </div>`;
+            html += `</div>`;
+            html += `</div>`;
+
+            // 2. About Me (Under Contact Details)
+            if (about.trim()) {
+                html += `
+                <div style="margin-top: 8px; margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid;">
+                    <div style="font-weight: 700; font-size: 10.5pt; color: #1a202c; margin-bottom: 3px;">About me:</div>
+                    <div style="font-size: 9.5pt; color: #2d3748; line-height: 1.5; text-align: justify;">${escapeHtml(about)}</div>
+                </div>
+                `;
+            }
+
+            // 3. Education
+            if (edu.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">EDUCATION</div>
+                    </div>
+                `;
+                edu.forEach(item => {
+                    html += `
+                    <div class="cv-entry-block">
+                        <div class="cv-entry-title">${escapeHtml(item.qualification)}${item.specialization ? ' – Specialization in ' + escapeHtml(item.specialization) : ''}</div>
+                        ${(item.start_year || item.result) ? `
+                        <div class="cv-entry-meta">${escapeHtml(item.start_year || '')}${item.start_year && item.result ? ' | ' : ''}${escapeHtml(item.result || '')}</div>
+                        ` : ''}
+                        ${item.institution ? `
+                        <div class="cv-entry-subtext">${escapeHtml(item.institution)}${item.location ? ', ' + escapeHtml(item.location) : ''}</div>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // 4. Work Experience
+            if (exp.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">WORK EXPERIENCE</div>
+                    </div>
+                `;
+                exp.forEach(item => {
+                    html += `
+                    <div class="cv-entry-block">
+                        <div class="cv-entry-title">${escapeHtml(item.job_title)}${item.organization ? ' | ' + escapeHtml(item.organization) : ''}${item.location ? ', ' + escapeHtml(item.location) : ''}</div>
+                        ${item.start_date ? `<div class="cv-entry-subtext" style="font-weight: 500; margin-bottom: 3px;">${escapeHtml(item.start_date)}</div>` : ''}
+                        ${(item.responsibilities && item.responsibilities.length > 0) ? `
+                        <ul class="cv-entry-bullets">
+                            ${item.responsibilities.map(r => r && r.trim() ? `<li>${escapeHtml(r)}</li>` : '').join('')}
+                        </ul>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // 5. Skills
+            if (skills.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">SKILLS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${skills.map(s => `<li>${escapeHtml(s.proficiency ? s.skill_name + ' – ' + s.proficiency : s.skill_name)}</li>`).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 6. Language (No forced page-break - flows naturally)
+            if (langs.length > 0) {
+                const motherTongues = langs.filter(l => l.is_mother_tongue).map(l => l.language);
+                const others = langs.filter(l => !l.is_mother_tongue);
+
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">LANGUAGE</div>
+                    </div>
+                `;
+                if (motherTongues.length > 0) {
+                    html += `<div style="font-size: 9.5pt; margin-top: 6px; margin-bottom: 4px;">Mother tongue(s): <strong>${escapeHtml(motherTongues.join(', '))}</strong></div>`;
+                }
+                if (others.length > 0) {
+                    html += `
+                    <div style="font-size: 9pt; margin-top: 4px; margin-bottom: 4px; color: #475569;">Other language(s):</div>
+                    <table class="cv-lang-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 20%; text-align: left; padding-left: 8px;">Language</th>
+                                <th colspan="2">UNDERSTANDING</th>
+                                <th colspan="2">SPEAKING</th>
+                                <th rowspan="2" style="vertical-align: middle;">WRITING</th>
+                            </tr>
+                            <tr>
+                                <th>Listening</th>
+                                <th>Reading</th>
+                                <th>Spoken prod.</th>
+                                <th>Spoken inter.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${others.map(o => `
+                            <tr>
+                                <td>${escapeHtml(o.language)}</td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.listening))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.reading))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.spoken_production))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.spoken_interaction))}</span></td>
+                                <td><span class="cv-cefr-badge">${escapeHtml(formatCefrDisplay(o.writing))}</span></td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            // 7. Digital Skills
+            if (digSkills.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">DIGITAL SKILLS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${digSkills.map(d => `
+                        <li>${d.description ? `<strong>${escapeHtml(d.skill)}</strong> – ${escapeHtml(d.description)}` : `<strong>${escapeHtml(d.skill)}</strong>`}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 8. Hobbies and Interests
+            if (hobbies.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">HOBBIES AND INTERESTS</div>
+                    </div>
+                    <ul class="cv-entry-bullets" style="margin-top: 6px;">
+                        ${hobbies.map(h => `<li>${escapeHtml(h.hobby)}</li>`).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // 9. References (Optional - At the very end)
+            if (references.length > 0) {
+                html += `
+                <div class="cv-section-block">
+                    <div class="cv-section-header">
+                        <span class="cv-bullet-dot"></span>
+                        <div class="cv-section-title">REFERENCES</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 6px;">
+                `;
+                references.forEach(r => {
+                    html += `
+                    <div class="cv-entry-block" style="margin-bottom: 4px; padding: 6px 10px; background: #f8fafc; border-left: 2.5px solid #475569; border-radius: 2px;">
+                        <div class="cv-entry-title" style="font-size: 9.8pt; font-weight: 700; color: #0f172a;">${escapeHtml(r.name)}</div>
+                        ${(r.designation || r.organization) ? `
+                        <div class="cv-entry-subtext" style="font-size: 8.8pt; font-weight: 600; color: #334155; margin-top: 2px;">
+                            ${escapeHtml(r.designation || '')}${r.designation && r.organization ? ' — ' : ''}${escapeHtml(r.organization || '')}
+                        </div>
+                        ` : ''}
+                        <div style="font-size: 8.5pt; color: #475569; margin-top: 3px; line-height: 1.45;">
+                            ${r.email ? `<div><span style="font-weight: 600; color: #1e293b;">Email:</span> <a href="mailto:${escapeHtml(r.email)}" style="color: #2563eb; text-decoration: underline;">${escapeHtml(r.email)}</a></div>` : ''}
+                            ${r.phone ? `<div><span style="font-weight: 600; color: #1e293b;">Phone:</span> ${escapeHtml(r.phone)}</div>` : ''}
+                        </div>
+                    </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            return html;
+        }
+
+        function openPreviewModal() {
+            const data = gatherFormData();
+            const container = document.getElementById('cv-paper-target');
+            container.innerHTML = renderCvDocument(data);
+            const modal = document.getElementById('preview-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePreviewModal() {
+            const modal = document.getElementById('preview-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function printCv() {
+            window.print();
+        }
+
+        // Generate and Download PDF - Strictly Standard A4 (210 x 297 mm) with ZERO crop or shift
+        async function downloadCvPdf() {
+            const data = gatherFormData();
+            const pInfo = data.personal_info || {};
+            const studentName = (pInfo.name || 'Student').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const filename = `${studentName}_CV.pdf`;
+
+            const slot = document.getElementById('pdf-render-slot');
+            slot.innerHTML = `
+                <div class="cv-document" style="box-shadow: none; margin: 0; padding: 16mm 18mm; width: 210mm; min-height: auto;">
+                    ${renderCvDocument(data)}
+                </div>
+            `;
+
+            const targetElement = slot.firstElementChild;
+
+            // Wait for passport photo and all images to be fully loaded
+            const imgs = Array.from(targetElement.querySelectorAll('img'));
+            await Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }));
+
+            const opt = {
+                margin:       0,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css'] }
+            };
+
+            try {
+                await html2pdf().set(opt).from(targetElement).save();
+            } catch (err) {
+                console.error('PDF export error:', err);
+            } finally {
+                slot.innerHTML = '';
+            }
+        }
+
+        // Initialize and Load Saved Data from Server
+        async function loadCvData() {
+            try {
+                const res = await fetch('/api/cv', {
+                    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+                });
+
+                if (!res.ok) return;
+
+                const data = await res.json();
+                if (!data) return;
+
+                // Update Status
+                updateStatusBadge(data.status, data.last_updated ? new Date(data.last_updated).toLocaleString() : null);
+
+                // Populate Personal Info
+                if (data.personal_info) {
+                    document.getElementById('pi-name').value = data.personal_info.name || '';
+                    document.getElementById('pi-nationality').value = data.personal_info.nationality || '';
+                    document.getElementById('pi-phone').value = data.personal_info.phone || '';
+                    document.getElementById('pi-email').value = data.personal_info.email || '';
+                    document.getElementById('pi-address').value = data.personal_info.address || '';
+                    document.getElementById('pi-linkedin').value = data.personal_info.linkedin || '';
+                    if (data.personal_info.photo_url) {
+                        uploadedPhotoUrl = data.personal_info.photo_url;
+                        showPhotoPreview(uploadedPhotoUrl);
+                    }
+                }
+
+                // Populate About Me
+                if (data.about_me) {
+                    document.getElementById('about-me').value = data.about_me;
+                }
+
+                // Populate Education
+                if (data.education && data.education.length > 0) {
+                    data.education.forEach(item => addEducationCard(item));
+                } else {
+                    addEducationCard(); // Empty initial card
+                }
+
+                // Populate Experience
+                if (data.experience && data.experience.length > 0) {
+                    data.experience.forEach(item => addExperienceCard(item));
+                }
+
+                // Populate Skills
+                if (data.skills && data.skills.length > 0) {
+                    data.skills.forEach(item => addSkillRow(item));
+                }
+
+                // Populate Languages
+                if (data.languages && data.languages.length > 0) {
+                    const mother = data.languages.find(l => l.is_mother_tongue);
+                    if (mother) {
+                        document.getElementById('lang-mother-tongue').value = mother.language || '';
+                    }
+                    data.languages.filter(l => !l.is_mother_tongue).forEach(item => addLanguageRow(item));
+                }
+
+                // Populate Digital Skills
+                if (data.digital_skills && data.digital_skills.length > 0) {
+                    data.digital_skills.forEach(item => addDigitalSkillRow(item));
+                }
+
+                // Populate Hobbies
+                if (data.hobbies && data.hobbies.length > 0) {
+                    data.hobbies.forEach(item => addHobbyRow(item));
+                }
+
+                // Populate References
+                if (data.references && data.references.length > 0) {
+                    data.references.forEach(item => addReferenceRow(item));
+                }
+
+            } catch (err) {
+                console.error('Failed to load CV data:', err);
+            }
+        }
+
+        // Run on page load
+        loadCvData();
+    </script>
+</body>
+</html>
